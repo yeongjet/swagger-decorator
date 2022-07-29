@@ -1,8 +1,8 @@
 // @ts-nocheck
 import _ from 'lodash'
-import { Parameter, Reference, Schema } from '../type/open-api-spec.interface.js'
-import { Enum, Type } from '../type/index.js'
-import { addEnumArraySchema, addEnumSchema, isEnumArray, isEnumDefined, createParamDecorator, getTypeIsArrayTuple } from '../util/index.js'
+import { Parameter, Reference, Schema } from '../common/open-api/open-api-spec.interface.js'
+import { Enum, Type } from '../common/open-api/index.js'
+import { addEnumArraySchema, addEnumSchema, isEnumArray, isEnumDefined, createParamDecorator, getTypeIsArrayTuple } from '../util.js'
 
 type ParameterOptions = Omit<Parameter, 'in' | 'schema' | 'name'>
 

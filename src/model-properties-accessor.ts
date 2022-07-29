@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { API_MODEL_PROPERTIES_ARRAY_METADATA, METADATA_FACTORY_NAME } from './constant/index.js'
 import { createApiPropertyDecorator } from './util'
-import { Type } from './open-api/index.js'
+import { Type } from './common/open-api/index.js'
 
 export class ModelPropertiesAccessor {
     getModelProperties(prototype: Type<unknown>): string[] {

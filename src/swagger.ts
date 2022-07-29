@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { OpenAPI, ServerVariable, SecurityScheme, ExternalDocumentation, SecurityRequirement } from './open-api/open-api-spec.interface.js'
+import { OpenAPI, ServerVariable, SecurityScheme, ExternalDocumentation, SecurityRequirement } from './common/open-api/open-api-spec.interface.js'
 import { Scanner } from './scanner.js'
 
 const defaultDocument: Omit<OpenAPI, 'paths'> = {

@@ -2,9 +2,9 @@
 import _ from 'lodash'
 import type { MergeExclusive } from 'type-fest'
 import { API_MODEL_PROPERTIES_METADATA } from '../constant/index.js'
-import { Schema } from '../open-api/open-api-spec.interface.js'
-import { Enum, Type, SchemaMetadata } from '../open-api/index.js'
-import { createPropertyDecorator, getEnumArray, getEnumType } from '../util/index.js'
+import { Schema } from '../common/open-api/open-api-spec.interface.js'
+import { Enum, Type, SchemaMetadata } from '../common/open-api/index.js'
+import { createPropertyDecorator, getEnumArray, getEnumType } from '../util.js'
 
 export type ApiPropertyOption = Omit<SchemaMetadata, 'enum' | 'type' | 'items'> & MergeExclusive<{
     enum?: Enum

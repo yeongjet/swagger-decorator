@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import { StatusCodes as HttpStatus } from 'http-status-codes'
 import { API_RESPONSE_METADATA } from '../constant/index.js'
-import { Response, Schema, Reference } from '../open-api/open-api-spec.interface.js'
-import { Type } from '../open-api/index.js'
+import { Response, Schema, Reference } from '../common/open-api/open-api-spec.interface.js'
+import { Type } from '../common/open-api/index.js'
 
 export interface ApiResponseMetadata extends Omit<Response, 'description'> {
     status?: number

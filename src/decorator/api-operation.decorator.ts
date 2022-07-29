@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { API_OPERATION_METADATA } from '../constant/index.js'
-import { Operation } from '../open-api/open-api-spec.interface.js'
+import { Operation } from '../common/open-api/open-api-spec.interface.js'
 import { createMethodDecorator } from 'decorator-generator'
 
 const defaultOption = { summary: '' }

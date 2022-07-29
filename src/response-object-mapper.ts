@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { ApiResponseSchemaHost } from './decorator/index.js'
-import { getSchemaPath } from './util/index.js'
+import { getSchemaPath } from './util.js'
 import { MimetypeContentWrapper } from './mimetype-content-wrapper.js'
 
 export class ResponseObjectMapper {
