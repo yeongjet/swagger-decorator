@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { ApiPropertyOptions } from './decorator/index.js'
-import { BaseParameter, Reference, Schema } from './type/open-api-spec.interface.js'
-import { ParamWithTypeMetadata } from './type/index.js'
+import { BaseParameter, Reference, Schema } from './open-api/open-api-spec.interface.js'
+import { ParamWithTypeMetadata } from './open-api/index.js'
 
 export class SwaggerTypesMapper {
   private readonly keysToRemove: Array<keyof ApiPropertyOptions | '$ref'> = [ 'type', 'isArray', 'enum', 'enumName', 'items', '$ref', ...this.getSchemaOptionsKeys() ]

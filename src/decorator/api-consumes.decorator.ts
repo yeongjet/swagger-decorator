@@ -1,6 +1,5 @@
-import { API_CONSUMES_METADATA } from '../constant/index.js'
-import { createClassAndMethodDecorator, concatMetaArray } from 'decorator-generator'
+import { createApiConsumesDecorator } from '../builder'
 
 export function ApiConsumes(...mimeTypes: string[]) {
-    return createClassAndMethodDecorator(API_CONSUMES_METADATA, mimeTypes, concatMetaArray)
+    return createApiConsumesDecorator(mimeTypes)
 }

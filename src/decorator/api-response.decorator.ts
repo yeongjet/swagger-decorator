@@ -30,7 +30,7 @@ export function ApiResponse(option: ApiResponseSchemaHost): MethodDecorator & Cl
 export function ApiResponse(option: ApiResponseMetadata | ApiResponseSchemaHost): MethodDecorator & ClassDecorator {
     const tmpOption = _.defaults(option, defaultApiResponseOption)
     const groupedMetadata = { [tmpOption.status]: _.omit(option, 'status') }
-    return (target: object, key?: string | symbol, descriptor?: TypedPropertyDescriptor<any>): any => {
+    return (target: object, key?: Property, descriptor?: TypedPropertyDescriptor<any>): any => {
         if (descriptor) {
             const responses = Reflect.getMetadata(API_RESPONSE_METADATA, descriptor.value) || {}
             Reflect.defineMetadata(API_RESPONSE_METADATA, { ...responses, ...groupedMetadata }, descriptor.value)

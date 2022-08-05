@@ -1,10 +1,10 @@
 import _ from 'lodash'
-import { Type, Enum, PropertyKey, ParamWithTypeMetadata, EnumArray, SchemaMetadata } from './common/open-api/index.js'
-import { Schema } from './common/open-api/open-api-spec.interface.js'
-import { METADATA_FACTORY_NAME, API_MODEL_PROPERTIES_ARRAY_METADATA } from '../constant/index.js'
+import { Type, Schema, Enum, ParamWithTypeMetadata, SchemaMetadata } from './common/open-api/index.js'
+import { Property } from './common'
+import { METADATA_FACTORY_NAME, API_MODEL_PROPERTIES_ARRAY_METADATA } from '../constant'
 
 export function createPropertyDecorator<T extends Record<string, any> = any>(metakey: string, metadata: T): PropertyDecorator {
-    return (target: object, propertyKey: string | symbol) => {
+    return (target: object, propertyKey: Property) => {
         if (_.isSymbol(propertyKey)) {
             return
         }
@@ -27,15 +27,8 @@ export function createPropertyDecorator<T extends Record<string, any> = any>(met
     }
 }
 
-export function getEnumType(enums: EnumArray) {
-    return _.some(enums, _.isString) ? 'string' : 'number'
-}
-
-export function getEnumArray(enums: Enum): EnumArray {
-    if (_.isArray(enums)) {
-        return _.uniq(_.reject(enums, _.isNil)) as EnumArray
-    }
-    return _.uniq(_.keys(enums).filter(_.isNaN))
+export function enumToArray(enums: Enum): string[] {
+    return _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil).map(toString) : _.keys(enums).filter(_.isNaN))
 }
 
 export function getTypeIsArrayTuple(input: Function | [Function] | undefined | string | Record<string, any>, isArrayFlag: boolean): [Function | undefined, boolean] {
@@ -91,6 +84,64 @@ export function getSchemaPath(model: string | Function): string {
 }
 
 // export const isEnumArray = (obj: any): boolean => !!obj.isArray && !!obj.enum
+export type ClassDecoratorParams = [
+    target: Function
+]
+
+export type MethodDecoratorParams = [
+    target: Object,
+    property: Property,
+    descriptor: PropertyDescriptor
+]
+
+export type PropertyDecoratorParams = [
+    target: Object,
+    property: Property
+]
+
+export type ParameterDecoratorParams = [
+    target: Object,
+    property: Property,
+    parameterIndex: number
+]
+// export interface ClassDecoration {
+//     target: Function
+// }
+
+// interface MethodDecoration {
+//     target: Object
+//     property: Property
+//     descriptor: PropertyDescriptor
+// }
+
+// export type DecoratorParams = [
+//     target: Object | Function,
+//     property?: Property,
+//     descriptorOrParamIndex?: PropertyDescriptor | number
+// ]
+type DecoratorParams = ClassDecoratorParams | PropertyDecoratorParams | MethodDecoratorParams | ParameterDecoratorParams
+
+//export type DecoratorParams = Parameters<ClassDecorator | PropertyDecorator | MethodDecorator | ParameterDecorator>
+
+export const isClassDecoration = (params: DecoratorParams): params is ClassDecoratorParams => {
+    const [ target, property, descriptor ] = params
+    return !_.isUndefined(target) && _.isUndefined(property) && _.isUndefined(descriptor)
+}
+
+export const isPropertyDecoration = (params: DecoratorParams): params is PropertyDecoratorParams => {
+    const [ target, property, descriptor ] = params
+    return !_.isUndefined(target) && !_.isUndefined(property) && _.isUndefined(descriptor)
+}
+
+export const isMethodDecoration = (params: DecoratorParams): params is MethodDecoratorParams => {
+    const [ target, property, descriptor ] = params
+    return !_.isUndefined(target) && !_.isUndefined(property) && _.isObject(descriptor)
+}
+
+export const isParameterDecoration = (params: DecoratorParams): params is ParameterDecoratorParams => {
+    const [ target, property, parameterIndex ] = params
+    return !_.isUndefined(target) && !_.isUndefined(property) && _.isNumber(parameterIndex)
+}
 
 export const isEnumDefined = (obj: any) => !!obj.enum
 
@@ -123,7 +174,16 @@ export const guard = (condition: boolean, message: string) => {
     }
 }
 
-export const set = (target: any, keys: (string | Record<string, any>)[], values: any[]) => {
+interface SetOption {
+    isConcat: boolean
+}
+
+const defaultSetOption: SetOption = {
+    isConcat: false
+}
+
+export const set = (target: any, keys: (string | Record<string, any>)[], values: any[], option?: SetOption) => {
+    const { isConcat } = { ...defaultSetOption, ...option }
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i]
         let parent: any
@@ -155,7 +215,11 @@ export const set = (target: any, keys: (string | Record<string, any>)[], values:
         guard(negate(_.isUndefined(target)), 'target is not found')
         if (i === keys.length - 1) {
             if (_.isArray(target)) {
-                target.push(values[i])
+                if (isConcat) {
+                    target.push(...values[i])
+                } else {
+                    target.push(values[i])
+                }
             } else if (_.isObject(target)) {
                 Object.assign(target, values[i + 1])
             } else if(isValidKey(parentKey)) {

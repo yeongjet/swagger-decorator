@@ -1,10 +1,9 @@
-import _ from 'lodash'
-import { ApiHeader, ApiHeaderOption } from './api-header.decorator.js'
-import { PropertyKey } from '../common/open-api/index.js'
+import { ApiHeader, ApiHeaderOption } from './api-header.decorator'
+import { ClassDecoratorParams, MethodDecoratorParams } from '../util'
 
-export const ApiHeaders = (headers: ApiHeaderOption[]) => {
-    return (target: Object, key?: PropertyKey, descriptor?: PropertyDescriptor): any => {
+export const ApiHeaders = (...headers: ApiHeaderOption[]) => {
+    return (...params: ClassDecoratorParams | MethodDecoratorParams): any => {
         // @ts-ignore
-        headers.forEach(header => ApiHeader(header)(target, key, descriptor))
+        headers.forEach(header => ApiHeader(header)(...params))
     }
 }

@@ -2,10 +2,8 @@ import { Schema, ParameterLocation } from './open-api-spec.interface'
 import type { MergeExclusive } from 'type-fest'
 
 export * from './open-api-spec.interface'
-export type PropertyKey = string | symbol
-export type EnumArray = string[] | number[]
-export type EnumObject = Record<string, number>
-export type Enum = MergeExclusive<EnumArray, EnumObject>
+
+export type Enum = MergeExclusive<string[] | number[], Record<string, number>>
 
 export interface Type<T = any> extends Function {
     new (...args: any[]): T

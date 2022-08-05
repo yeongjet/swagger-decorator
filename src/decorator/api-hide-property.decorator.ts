@@ -1,3 +1,5 @@
+import { Property } from '../common'
+
 export function ApiHideProperty(): PropertyDecorator {
-  return (target: Object, propertyKey: string | symbol) => {}
+  return (target: Object, property: Property) => {}
 }

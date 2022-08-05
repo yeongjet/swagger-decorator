@@ -1,4 +1,4 @@
-import { Content } from './type/open-api-spec.interface.js'
+import { Content } from './open-api/open-api-spec.interface.js'
 
 export class MimetypeContentWrapper {
     wrap(mimetype: string[], obj: Record<string, any>): Record<'content', Content> {

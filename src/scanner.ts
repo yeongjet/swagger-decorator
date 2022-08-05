@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import { API_EXCLUDE_CONTROLLER_METADATA, API_TAG_METADATA, API_SECURITY_METADATA, API_EXTRA_MODELS_METADATA, API_RESPONSE_METADATA, API_PRODUCES_METADATA } from './constant/index.js'
 import { ApiResponseMetadata } from './index.js'
-import { Type } from './type/index.js'
-import { Schema } from './type/open-api-spec.interface.js'
+import { Type } from './open-api/index.js'
+import { Schema } from './open-api/open-api-spec.interface.js'
 import { ResponseObjectFactory } from './response-object-factory.js'
 
 const responseObjectFactory = new ResponseObjectFactory()
