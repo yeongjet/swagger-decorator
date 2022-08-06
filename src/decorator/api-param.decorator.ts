@@ -6,19 +6,14 @@ import type { MergeExclusive } from 'type-fest'
 import { createMethodDecorator, appendMetaArray } from 'decorator-generator'
 import { getEnumType, getEnumArray } from '../util.js'
 
-type ParameterOptions = Omit<Parameter, 'in' | 'schema'>
+type ParamOptions = Omit<Parameter, 'in' | 'schema'>
 
 interface ApiParamMetadata extends ParameterOptions {
     type?: Type<unknown> | Function | [Function] | string
     format?: string
-    enum?: Enum
 }
 
-interface ApiParamSchemaHost extends ParameterOptions {
-    schema: Schema;
-}
-
-export type ApiParamOption = MergeExclusive<ApiParamMetadata, ApiParamSchemaHost>
+export type ApiParamOption = ParamOptions & MergeExclusive<{ enum: Enum }, { schema: Schema }>
 
 const defaultOption = { required: true }
 
