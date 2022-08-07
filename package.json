@@ -22,7 +22,8 @@
     "decorator-generator": "file:../decorator-generator",
     "http-status-codes": "^2.2.0",
     "lodash": "^4.17.21",
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "type-fest": "^2.18.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.182",

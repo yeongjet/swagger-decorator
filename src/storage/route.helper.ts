@@ -1,7 +1,7 @@
 import * as util from '../util'
 import * as storage from './storage'
 import * as defaults from './default'
-import { Header, Route, Property } from '../common'
+import { Header, Param, Route, Property } from '../common'
 import { SecurityRequirement } from '../common/open-api'
 
 const controllers = storage.get().controllers
@@ -20,4 +20,8 @@ export const addConsumes = (controllerName: string, routeName: Property, consume
 
 export const addHeader = (controllerName: string, routeName: Property, header: Header) => {
     util.set(controllers, [ controllerName, { routes: { name: routeName }}, 'headers' ], [ defaults.getController(), header ])
+}
+
+export const addParam = (controllerName: string, routeName: Property, param: Param) => {
+    util.set(controllers, [ controllerName, { routes: { name: routeName }}, 'parameters' ], [ defaults.getController(), defaults.getRoute(routeName), param ])
 }

@@ -1,28 +1,20 @@
 import _ from 'lodash'
-import { Parameter, Schema } from '../common/open-api/open-api-spec.interface.js'
-import { API_PARAMETERS_METADATA } from '../constant/index.js'
-import { Enum, Type } from '../common/open-api/index.js'
-import type { MergeExclusive } from 'type-fest'
-import { createMethodDecorator, appendMetaArray } from 'decorator-generator'
-import { getEnumType, getEnumArray } from '../util.js'
+import { MergeExclusive } from 'type-fest'
+import { Schema, Parameter, Enum } from '../common/open-api'
+import { createApiParamDecorator } from '../builder'
+import { enumToArray } from '../util'
+import { Param } from '../common'
 
-type ParamOptions = Omit<Parameter, 'in' | 'schema'>
+export type ApiParamOption = Omit<Parameter, 'schema' | 'in'> & MergeExclusive<{ enum: Enum }, { schema: Schema }>
 
-interface ApiParamMetadata extends ParameterOptions {
-    type?: Type<unknown> | Function | [Function] | string
-    format?: string
-}
-
-export type ApiParamOption = ParamOptions & MergeExclusive<{ enum: Enum }, { schema: Schema }>
-
-const defaultOption = { required: true }
+const defaultOption: Partial<ApiParamOption> = { required: true }
 
 export function ApiParam(option: ApiParamOption) {
-    const param = _.defaults({ ..._.omit(option, 'enum', 'schema'), in: 'path', schema: {} }, defaultOption)
+    const param: Param = { ...defaultOption, ..._.omit(option, 'enum', 'schema'), in: 'path', schema: { type: 'string' } }
     if (option.enum) {
-        const enumArray = getEnumArray(option.enum)
-        const enumType = getEnumType(enumArray)
-        param.schema = { type: enumType, enum: enumArray }
+        param.schema.enum = enumToArray(option.enum).map(toString)
+    } else if (option.schema) {
+        param.schema = { ...param.schema, ...option.schema }
     }
-    return createMethodDecorator(API_PARAMETERS_METADATA, param, appendMetaArray)
+    return createApiParamDecorator(param)
 }

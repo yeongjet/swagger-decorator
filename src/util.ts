@@ -27,8 +27,8 @@ export function createPropertyDecorator<T extends Record<string, any> = any>(met
     }
 }
 
-export function enumToArray(enums: Enum): string[] {
-    return _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil).map(toString) : _.keys(enums).filter(_.isNaN))
+export function enumToArray(enums: Enum): number[] | string[] {
+    return _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil) : _.keys(enums).filter(_.isNaN)) as any
 }
 
 export function getTypeIsArrayTuple(input: Function | [Function] | undefined | string | Record<string, any>, isArrayFlag: boolean): [Function | undefined, boolean] {

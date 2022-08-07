@@ -1,56 +1,36 @@
-import { Type } from '@nestjs/common';
-import { omit } from 'lodash';
-import {
-  ExamplesObject,
-  ReferenceObject,
-  RequestBodyObject,
-  SchemaObject
-} from '../interfaces/open-api-spec.interface';
-import { SwaggerEnumType } from '../types/swagger-enum.type';
-import {
-  addEnumArraySchema,
-  addEnumSchema,
-  isEnumArray,
-  isEnumDefined
-} from '../utils/enum.utils';
-import { createParamDecorator, getTypeIsArrayTuple } from './helpers';
+import _ from 'lodash'
+import { Class, MergeExclusive } from 'type-fest'
+import { Enum, RequestBody, Schema } from '../common/open-api'
+import { enumToArray } from '../util'
 
-type RequestBodyOptions = Omit<RequestBodyObject, 'content'>;
+export type ApiBodyOption = Omit<RequestBody, 'content'> & { isArray?: boolean } & MergeExclusive<{ type: Class<any> }, MergeExclusive<{ enum: Enum }, { schema: Schema }>>
 
-interface ApiBodyMetadata extends RequestBodyOptions {
-  type?: Type<unknown> | Function | [Function] | string;
-  isArray?: boolean;
-  enum?: SwaggerEnumType;
+const defaultOption: Partial<ApiBodyOption> = {
+    isArray: false,
+    required: true
 }
 
-interface ApiBodySchemaHost extends RequestBodyOptions {
-  schema: SchemaObject | ReferenceObject;
-  examples?: ExamplesObject;
-}
-
-export type ApiBodyOptions = ApiBodyMetadata | ApiBodySchemaHost;
-
-const defaultBodyMetadata: ApiBodyMetadata = {
-  type: String,
-  required: true
-};
-
-export function ApiBody(options: ApiBodyOptions): MethodDecorator {
-  const [type, isArray] = getTypeIsArrayTuple(
-    (options as ApiBodyMetadata).type,
-    (options as ApiBodyMetadata).isArray
-  );
-  const param: ApiBodyMetadata & Record<string, any> = {
-    in: 'body',
-    ...omit(options, 'enum'),
-    type,
-    isArray
-  };
-
-  if (isEnumArray(options)) {
-    addEnumArraySchema(param, options);
-  } else if (isEnumDefined(options)) {
-    addEnumSchema(param, options);
-  }
-  return createParamDecorator(param, defaultBodyMetadata);
+export function ApiBody(option: ApiBodyOption): MethodDecorator {
+    const body = { ...defaultOption, ..._.omit(option, 'isArray', 'enum', 'schema') }
+    if (option.type) {
+        body.type = option.type
+    } else if (option.enum) {
+        const array = enumToArray(option.enum)
+        const type = typeof array[0]
+        if (option.isArray) {
+            
+            body.schema = {
+                type: 'array',
+                items: {
+                    type,
+                    enum: array
+                }
+            }
+        } else {
+            body.schema = {
+                type,
+                enum: array
+            }
+        }
+    }
 }

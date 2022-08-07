@@ -1,45 +1,33 @@
-import { Response, Operation, ExternalDocumentation, Responses, SecurityRequirement, Schema, Parameter, Reference } from './open-api'
+import { Operation, Parameter, Schema } from './open-api'
 import { RequestMethod } from './constant'
+import { Merge, SetRequired } from 'type-fest'
 
 export type Property = string | symbol
 
 export type PartialRequired<T, K extends keyof T> = Required<Pick<T, K>> & Partial<Omit<T, K>>
 
-export interface Header {
-    name: string
-    description?: string
-    required?: boolean
-    schema: Schema
-}
+export interface Header extends Merge<Pick<Parameter, 'name'>, { schema: Schema }> {}
 
-export interface Route {
+export interface Param extends Merge<Parameter, { schema: Schema }> {}
+
+type OperationPicksForRoute = 'tags' | 'summary' | 'description' | 'externalDocs' | 'parameters' | 'requestBody' | 'responses' | 'security'
+
+type OperationPicksForController = 'tags' | 'summary' | 'description' | 'externalDocs' | 'responses' | 'security'
+
+export interface Route extends SetRequired<Pick<Operation, OperationPicksForRoute>, 'tags' | 'parameters' | 'security'> {
     name: Property
     url?: string
     requestMethod?: RequestMethod
     consumes: string[]
     headers: Header[]
-    tags: string[]
-    summary?: string
-    description?: string
-    externalDocs?: ExternalDocumentation,
-    parameters?: (Parameter | Reference)[],
-    responses: Responses
-    security: SecurityRequirement[]
-    deprecated?: boolean
 }
 
-export interface Controller {
+export interface Controller extends SetRequired<Pick<Operation, OperationPicksForController>, 'tags' | 'security'> {
     name: string
     prefix: string
     routes: Route[]
     consumes: string[]
     headers: Header[]
-    tags: string[]
-    summary?: string
-    description?: string
-    externalDocs?: ExternalDocumentation,
-    responses: Responses
-    security: SecurityRequirement[]
 }
 
 export type Storage = {
