@@ -1,50 +1,38 @@
-// @ts-nocheck
 import _ from 'lodash'
-import { Parameter, Reference, Schema } from '../common/open-api/open-api-spec.interface.js'
-import { Enum, Type } from '../common/open-api/index.js'
-import { addEnumArraySchema, addEnumSchema, isEnumArray, isEnumDefined, createParamDecorator, getTypeIsArrayTuple } from '../util.js'
+import { BaseParameter } from '../common/open-api'
+import { Enum, Query, ClassicTypeSchema } from '../common'
+import { PrimitiveClass, PrimitiveString, MergeExclusive3 } from '../common/type-fest'
+import { MergeExclusive, Class } from 'type-fest'
+import { enumToArray, wrapArray, throwError } from '../util'
+import { createMethodDecorator } from '../builder'
 
-type ParameterOptions = Omit<Parameter, 'in' | 'schema' | 'name'>
+export type ApiQueryOption = MergeExclusive<
+    { type: Class<any>, isArray?: boolean },
+    Omit<BaseParameter, 'schema'> & MergeExclusive3<
+        { name: string, type: PrimitiveClass | PrimitiveString, isArray?: boolean },
+        { name: string, enum: Enum, isArray?: boolean },
+        { name: string, schema: ClassicTypeSchema }
+    >
+>
 
-interface ApiQueryMetadata extends ParameterOptions {
-    name?: string
-    type?: Type<unknown> | Function | [Function] | string
-    isArray?: boolean
-    enum?: Enum
-    enumName?: string
-}
-
-interface ApiQuerySchemaHost extends ParameterOptions {
-    name?: string
-    schema: Schema | Reference
-}
-
-export type ApiQueryOptions = ApiQueryMetadata | ApiQuerySchemaHost
-
-const defaultQueryOptions: ApiQueryOptions = {
-    name: '',
+const defaultOption = {
+    isArray: false,
     required: true
 }
 
-export function ApiQuery(options: ApiQueryOptions): MethodDecorator {
-    const apiQueryMetadata = options as ApiQueryMetadata
-    const [ type, isArray ] = getTypeIsArrayTuple(apiQueryMetadata.type, !!apiQueryMetadata.isArray)
-    const param: ApiQueryMetadata & Record<string, any> = {
-        name: _.isNil(options.name) ? defaultQueryOptions.name : options.name,
-        in: 'query',
-        ..._.omit(options, 'enum'),
-        type
+export function ApiQuery(option: ApiQueryOption): MethodDecorator {
+    const { name, type, enum: enums, schema, isArray, ...openApiParam } = { ...defaultOption, ...option }
+    const query: Query = { ...openApiParam, schema: {} }
+    if (type) {
+        query.schema = wrapArray(type, isArray)
+    } else if (enums) {
+        const array = enumToArray(enums)
+        const type = typeof array[0]
+        query.schema =wrapArray(type, isArray, array)
+    } else if (schema) {
+        query.schema = schema
+    } else {
+        throwError('Invalid option')
     }
-
-    if (isEnumArray(options)) {
-        addEnumArraySchema(param, options)
-    } else if (isEnumDefined(options)) {
-        addEnumSchema(param, options)
-    }
-
-    if (isArray) {
-        param.isArray = isArray
-    }
-
-    return createParamDecorator(param, defaultQueryOptions)
+    return createMethodDecorator('queries', query)
 }

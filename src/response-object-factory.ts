@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { ApiResponseMetadata, ApiResponseSchemaHost } from './decorator/index.js'
-import { Schema } from './common/open-api/open-api-spec.interface.js'
-import { isBuiltInType } from './util.js'
+import { Schema } from './common/open-api/open-api.js'
+
 import { SchemaFactory } from './schema-object-factory.js'
 import { SwaggerTypesMapper } from './swagger-types-mapper.js'
 import { MimetypeContentWrapper } from './mimetype-content-wrapper.js'

@@ -1,6 +1,6 @@
 import { Route } from '../common'
-import { createApiOperationDecorator } from '../builder'
+import { createMethodDecorator } from '../builder'
 
 export function ApiOperation(operation: Partial<Route>) {
-  return createApiOperationDecorator(operation)
+  return createMethodDecorator(null, operation)
 }

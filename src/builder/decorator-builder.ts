@@ -1,55 +1,15 @@
 import * as storage from '../storage'
-import { Operation, SecurityRequirement } from '../common/open-api'
-import { isClassDecoration, isMethodDecoration, ClassDecoratorParams, MethodDecoratorParams } from '../util'
-import { Header, Param, Route } from '../common'
+import { ClassDecoratorParams, MethodDecoratorParams } from '../util'
 
-type CreateClassMethodDecorator = {
-    (handler: (...handlerParams: any[]) => any): ClassDecorator & MethodDecorator
-    (classDecorationHandler: (...handlerParams: ClassDecoratorParams) => any, methodDecorationHandler: (...handlerParams: MethodDecoratorParams) => any): ClassDecorator & MethodDecorator
-}
+export const createMethodDecorator =
+    (key: any, value: any, option?: any) => (...[ target, property ]: MethodDecoratorParams) => {
+        storage.setRoute(target.constructor.name, property, key ? [ key ]: [], [ value ], option)
+    }
 
-const createClassMethodDecorator: CreateClassMethodDecorator = (...handlers: any[]) => 
-(...params: ClassDecoratorParams | MethodDecoratorParams) => {
-    if (handlers.length === 1) {
-        const [ handler ] = handlers
-        handler(params)
-    } else if (handlers.length === 2) {
-        const [ classDecorationHandler, methodDecorationHandler ] = handlers
-        if (isClassDecoration(params)) {
-            classDecorationHandler(...params)
-        } else if (isMethodDecoration(params)){
-            methodDecorationHandler(...params)
-        }
+export const createClassMethodDecorator = (key: any, value: any, option?: any): ClassDecorator & MethodDecorator => (...[ target, property ]: ClassDecoratorParams | MethodDecoratorParams) => {
+    if (property) {
+        storage.setRoute((target as Object).constructor.name, property, key ? [ key ]: [], [ value ], option)
+    } else {
+        storage.setController((target as Function).name, key ? [ key ]: [], [ value ], option)
     }
 }
-
-export const createApiSecurityDecorator =
-    (security: SecurityRequirement) => createClassMethodDecorator((target) => {
-        storage.controller.addSecurity(target.name, security)
-    }, (target, property) => {
-        storage.route.addSecurity(target.constructor.name, property, security)
-    })
-
-export const createApiConsumesDecorator =
-    (consumes: string[]) => createClassMethodDecorator((target) => {
-        storage.controller.addConsumes(target.name, consumes)
-    }, (target, property) => {
-        storage.route.addConsumes(target.constructor.name, property, consumes)
-    })                                                                                                                    
-
-export const createApiHeaderDecorator =
-    (header: Header) => createClassMethodDecorator((target) => {
-        storage.controller.addHeader(target.name, header)
-    }, (target, property) => {
-        storage.route.addHeader(target.constructor.name, property, header)
-    })
-
-export const createApiParamDecorator =
-    (param: Param) => (...[target, property, descriptor]: MethodDecoratorParams) => {
-        storage.route.addParam(target.constructor.name, property, param)
-    }
-
-export const createApiOperationDecorator =
-    (operation: Partial<Route>) => (...[target, property, descriptor]: MethodDecoratorParams) => {
-        storage.route.set(target.constructor.name, property, operation)
-    }

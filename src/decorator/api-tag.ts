@@ -1,6 +1,5 @@
-import { API_TAG_METADATA } from '../constant/index.js'
-import { createClassAndMethodDecorator, concatMetaArray } from 'decorator-generator'
+import { createClassMethodDecorator } from '../builder'
 
 export function ApiTags(...tags: string[]) {
-    return createClassAndMethodDecorator(API_TAG_METADATA, tags, concatMetaArray)
+    return createClassMethodDecorator('tags', tags)
 }

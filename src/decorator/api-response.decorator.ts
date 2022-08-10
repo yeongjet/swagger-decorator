@@ -1,95 +1,82 @@
 import _ from 'lodash'
-import { StatusCodes as HttpStatus } from 'http-status-codes'
-import { API_RESPONSE_METADATA } from '../constant/index.js'
-import { Response, Schema, Reference } from '../common/open-api/open-api-spec.interface.js'
-import { Type } from '../common/open-api/index.js'
+import { StatusCodes } from 'http-status-codes'
+import { SetOptional, MergeExclusive } from 'type-fest'
+import { Response, Type, ClassicTypeSchema } from '../common'
+import { createClassMethodDecorator } from '../builder'
+import { wrapArray, throwError } from '../util'
 
-export interface ApiResponseMetadata extends Omit<Response, 'description'> {
-    status?: number
-    type?: Type<unknown> | Function | string
-    isArray?: boolean
-    description?: string
+export type ApiResponseOption = Omit<SetOptional<Response, 'status'>, 'schema'> & 
+    MergeExclusive<
+        { type?: Type, isArray?: boolean },
+        { schema?: ClassicTypeSchema }
+    >
+
+const defaultOption = {
+    status: StatusCodes.OK,
+    isArray: false
 }
 
-export interface ApiResponseSchemaHost extends Omit<Response, 'description'> {
-    schema: Schema & Partial<Reference>
-    status?: number
-    description?: string
-}
-
-export type ApiResponseOptions = ApiResponseMetadata | ApiResponseSchemaHost
-
-const defaultApiResponseOption = {
-    status: HttpStatus.OK,
-    isArray: false,
-    description: ''
-}
-
-export function ApiResponse(option: ApiResponseMetadata): MethodDecorator & ClassDecorator
-export function ApiResponse(option: ApiResponseSchemaHost): MethodDecorator & ClassDecorator
-export function ApiResponse(option: ApiResponseMetadata | ApiResponseSchemaHost): MethodDecorator & ClassDecorator {
-    const tmpOption = _.defaults(option, defaultApiResponseOption)
-    const groupedMetadata = { [tmpOption.status]: _.omit(option, 'status') }
-    return (target: object, key?: Property, descriptor?: TypedPropertyDescriptor<any>): any => {
-        if (descriptor) {
-            const responses = Reflect.getMetadata(API_RESPONSE_METADATA, descriptor.value) || {}
-            Reflect.defineMetadata(API_RESPONSE_METADATA, { ...responses, ...groupedMetadata }, descriptor.value)
-            return descriptor
-        }
-        const responses = Reflect.getMetadata(API_RESPONSE_METADATA, target) || {}
-        Reflect.defineMetadata(API_RESPONSE_METADATA, { ...responses, ...groupedMetadata }, target)
-        return target
+export function ApiResponse(option: ApiResponseOption): MethodDecorator & ClassDecorator {
+    const { type, schema, isArray, ...openApiParam } = { ...defaultOption, ...option }
+    const response: Response = { ...openApiParam, schema: {} }
+    if (type) {
+        response.schema = wrapArray(type, isArray)
+    } else if (schema) {
+        response.schema = schema
+    } else {
+        throwError('Invalid option')
     }
+    return createClassMethodDecorator('responses', response)
 }
 
-export const ApiOkResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.OK })
+export const ApiOkResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.OK })
 
-export const ApiCreatedResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.CREATED })
+export const ApiCreatedResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.CREATED })
 
-export const ApiAcceptedResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.ACCEPTED})
+export const ApiAcceptedResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.ACCEPTED})
 
-export const ApiNoContentResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.NO_CONTENT })
+export const ApiNoContentResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.NO_CONTENT })
 
-export const ApiMovedPermanentlyResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.MOVED_PERMANENTLY })
+export const ApiMovedPermanentlyResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.MOVED_PERMANENTLY })
 
-export const ApiMovedTemporarilyResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.MOVED_TEMPORARILY })
+export const ApiMovedTemporarilyResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.MOVED_TEMPORARILY })
 
-export const ApiBadRequestResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.BAD_REQUEST })
+export const ApiBadRequestResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.BAD_REQUEST })
 
-export const ApiUnauthorizedResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.UNAUTHORIZED })
+export const ApiUnauthorizedResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.UNAUTHORIZED })
 
-export const ApiTooManyRequestsResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.TOO_MANY_REQUESTS })
+export const ApiTooManyRequestsResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.TOO_MANY_REQUESTS })
 
-export const ApiNotFoundResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.NOT_FOUND })
+export const ApiNotFoundResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.NOT_FOUND })
 
-export const ApiInternalServerErrorResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.INTERNAL_SERVER_ERROR })
+export const ApiInternalServerErrorResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.INTERNAL_SERVER_ERROR })
 
-export const ApiBadGatewayResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.BAD_GATEWAY })
+export const ApiBadGatewayResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.BAD_GATEWAY })
 
-export const ApiConflictResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.CONFLICT })
+export const ApiConflictResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.CONFLICT })
 
-export const ApiForbiddenResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.FORBIDDEN })
+export const ApiForbiddenResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.FORBIDDEN })
 
-export const ApiGatewayTimeoutResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.GATEWAY_TIMEOUT })
+export const ApiGatewayTimeoutResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.GATEWAY_TIMEOUT })
 
-export const ApiGoneResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.GONE })
+export const ApiGoneResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.GONE })
 
-export const ApiMethodNotAllowedResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.METHOD_NOT_ALLOWED })
+export const ApiMethodNotAllowedResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.METHOD_NOT_ALLOWED })
 
-export const ApiNotAcceptableResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.NOT_ACCEPTABLE })
+export const ApiNotAcceptableResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.NOT_ACCEPTABLE })
 
-export const ApiNotImplementedResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.NOT_IMPLEMENTED })
+export const ApiNotImplementedResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.NOT_IMPLEMENTED })
 
-export const ApiPreconditionFailedResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.PRECONDITION_FAILED })
+export const ApiPreconditionFailedResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.PRECONDITION_FAILED })
 
-export const ApiRequestTooLongResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.REQUEST_TOO_LONG })
+export const ApiRequestTooLongResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.REQUEST_TOO_LONG })
 
-export const ApiRequestTimeoutResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.REQUEST_TIMEOUT })
+export const ApiRequestTimeoutResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.REQUEST_TIMEOUT })
 
-export const ApiServiceUnavailableResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.SERVICE_UNAVAILABLE })
+export const ApiServiceUnavailableResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.SERVICE_UNAVAILABLE })
 
-export const ApiUnprocessableEntityResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.UNPROCESSABLE_ENTITY })
+export const ApiUnprocessableEntityResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.UNPROCESSABLE_ENTITY })
 
-export const ApiUnsupportedMediaTypeResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.UNSUPPORTED_MEDIA_TYPE })
+export const ApiUnsupportedMediaTypeResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.UNSUPPORTED_MEDIA_TYPE })
 
-export const ApiDefaultResponse = (options: ApiResponseOptions = {}) => ApiResponse({ ...options, status: HttpStatus.OK })
+export const ApiDefaultResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.OK })

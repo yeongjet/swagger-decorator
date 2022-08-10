@@ -1,5 +1,5 @@
-import { createApiConsumesDecorator } from '../builder'
+import { createClassMethodDecorator } from '../builder'
 
 export function ApiConsumes(...mimeTypes: string[]) {
-    return createApiConsumesDecorator(mimeTypes)
+    return createClassMethodDecorator('consumes', mimeTypes, { isConcat: true })
 }

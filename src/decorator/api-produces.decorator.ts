@@ -1,6 +1,5 @@
-import { API_PRODUCES_METADATA } from '../constant/index.js'
-import { createClassAndMethodDecorator, concatMetaArray } from 'decorator-generator'
+import { createClassMethodDecorator } from '../builder'
 
 export function ApiProduces(...mimeTypes: string[]) {
-    return createClassAndMethodDecorator(API_PRODUCES_METADATA, mimeTypes, concatMetaArray)
+    return createClassMethodDecorator('produces', mimeTypes, { isConcat: true })
 }

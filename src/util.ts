@@ -1,89 +1,20 @@
 import _ from 'lodash'
-import { Type, Schema, Enum, ParamWithTypeMetadata, SchemaMetadata } from './common/open-api/index.js'
-import { Property } from './common'
-import { METADATA_FACTORY_NAME, API_MODEL_PROPERTIES_ARRAY_METADATA } from '../constant'
+import { Enum, Property, Type } from './common'
 
-export function createPropertyDecorator<T extends Record<string, any> = any>(metakey: string, metadata: T): PropertyDecorator {
-    return (target: object, propertyKey: Property) => {
-        if (_.isSymbol(propertyKey)) {
-            return
-        }
-        const properties = Reflect.getMetadata(API_MODEL_PROPERTIES_ARRAY_METADATA, target) || []
-        const key = `:${propertyKey}`
-        if (!properties.includes(key)) {
-            Reflect.defineMetadata(API_MODEL_PROPERTIES_ARRAY_METADATA, [ ...properties, `:${propertyKey}` ], target)
-        }
-        const existingMetadata = Reflect.getMetadata(metakey, target, propertyKey)
-        if (existingMetadata) {
-            const newMetadata = _.omitBy(metadata, _.isUndefined)
-            const metadataToSave = { ...existingMetadata, ...newMetadata }
-            Reflect.defineMetadata(metakey, metadataToSave, target, propertyKey)
-        } else {
-            const type =
-                target?.constructor?.[METADATA_FACTORY_NAME]?.()[propertyKey]?.type ??
-                Reflect.getMetadata('design:type', target, propertyKey)
-            Reflect.defineMetadata(metakey, { type, ..._.omitBy(metadata, _.isUndefined) }, target, propertyKey)
-        }
-    }
+export const wrapArray = (type: Type, isArray: boolean, array?: any[]) => {
+    const items = array ? { type, enum: array } : { type }
+    return isArray ? { type: 'array', items } : items
 }
 
 export function enumToArray(enums: Enum): number[] | string[] {
     return _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil) : _.keys(enums).filter(_.isNaN)) as any
 }
 
-export function getTypeIsArrayTuple(input: Function | [Function] | undefined | string | Record<string, any>, isArrayFlag: boolean): [Function | undefined, boolean] {
-    if (!input) {
-        return [ input as undefined, isArrayFlag ]
-    }
-    if (isArrayFlag) {
-        return [ input as Function, isArrayFlag ]
-    }
-    const isInputArray = _.isArray(input)
-    const type = isInputArray ? input[0] : input
-    return [ type as Function, isInputArray ]
-}
-
-export function addEnumArraySchema(paramDefinition: Partial<Record<'schema' | 'isArray' | 'enumName', any>>, decoratorOptions: Partial<Record<'enum' | 'enumName', any>>) {
-    const paramSchema: Schema = paramDefinition.schema || {}
-    paramDefinition.schema = paramSchema
-    paramSchema.type = 'array'
-    delete paramDefinition.isArray
-
-    const enumValues = getEnumValues(decoratorOptions.enum)
-    paramSchema.items = {
-        type: getEnumType(enumValues),
-        enum: enumValues
-    }
-
-    if (decoratorOptions.enumName) {
-        paramDefinition.enumName = decoratorOptions.enumName
-    }
-}
-
-export function addEnumSchema(
-    paramDefinition: Partial<Record<string, any>>,
-    decoratorOptions: Partial<Record<string, any>>
-) {
-    const paramSchema: Schema = paramDefinition.schema || {}
-    const enumValues = getEnumValues(decoratorOptions.enum)
-
-    paramDefinition.schema = paramSchema
-    paramSchema.enum = enumValues
-    paramSchema.type = getEnumType(enumValues)
-
-    if (decoratorOptions.enumName) {
-        paramDefinition.enumName = decoratorOptions.enumName
-    }
-}
-
-const BUILT_IN_TYPES = [ String, Boolean, Number, Object, Array ]
-
 export function getSchemaPath(model: string | Function): string {
     const modelName = _.isString(model) ? model : model && model.name
     return `#/components/schemas/${modelName}`
 }
 
-// export const isEnumArray = (obj: any): boolean => !!obj.isArray && !!obj.enum
 export type ClassDecoratorParams = [
     target: Function
 ]
@@ -104,24 +35,8 @@ export type ParameterDecoratorParams = [
     property: Property,
     parameterIndex: number
 ]
-// export interface ClassDecoration {
-//     target: Function
-// }
 
-// interface MethodDecoration {
-//     target: Object
-//     property: Property
-//     descriptor: PropertyDescriptor
-// }
-
-// export type DecoratorParams = [
-//     target: Object | Function,
-//     property?: Property,
-//     descriptorOrParamIndex?: PropertyDescriptor | number
-// ]
 type DecoratorParams = ClassDecoratorParams | PropertyDecoratorParams | MethodDecoratorParams | ParameterDecoratorParams
-
-//export type DecoratorParams = Parameters<ClassDecorator | PropertyDecorator | MethodDecorator | ParameterDecorator>
 
 export const isClassDecoration = (params: DecoratorParams): params is ClassDecoratorParams => {
     const [ target, property, descriptor ] = params
@@ -143,18 +58,6 @@ export const isParameterDecoration = (params: DecoratorParams): params is Parame
     return !_.isUndefined(target) && !_.isUndefined(property) && _.isNumber(parameterIndex)
 }
 
-export const isEnumDefined = (obj: any) => !!obj.enum
-
-export const isEnumMetadata = (metadata: SchemaMetadata) =>
-    metadata.enum || (metadata.isArray && metadata.items?.['enum'])
-
-export const isDateCtor = (type: Type<unknown> | Function | string): boolean => type === Date
-
-export const isBuiltInType = (type: Type<unknown> | Function | string): boolean =>
-    _.isFunction(type) && BUILT_IN_TYPES.some(item => item === type)
-
-export const isBodyParameter = (param: ParamWithTypeMetadata): boolean => param.in === 'body'
-
 export const isContain = (first: object, second: object) => {
     for (const key of Object.keys(second)) {
         if (first[key] !== second[key]) {
@@ -172,6 +75,10 @@ export const guard = (condition: boolean, message: string) => {
     if (!condition) {
         throw new Error(message)
     }
+}
+
+export const throwError = (message: string) => {
+    throw new Error(message)
 }
 
 interface SetOption {
