@@ -1,14 +1,14 @@
 import _ from 'lodash'
 import { StatusCodes } from 'http-status-codes'
 import { SetOptional, MergeExclusive } from 'type-fest'
-import { Response, Type, ClassicTypeSchema } from '../common'
+import { Response, Type, Schema } from '../common'
 import { createClassMethodDecorator } from '../builder'
-import { wrapArray, throwError } from '../util'
+import { wrapArray } from '../util'
 
 export type ApiResponseOption = Omit<SetOptional<Response, 'status'>, 'schema'> & 
     MergeExclusive<
         { type?: Type, isArray?: boolean },
-        { schema?: ClassicTypeSchema }
+        { schema?: Schema }
     >
 
 const defaultOption = {
@@ -23,8 +23,6 @@ export function ApiResponse(option: ApiResponseOption): MethodDecorator & ClassD
         response.schema = wrapArray(type, isArray)
     } else if (schema) {
         response.schema = schema
-    } else {
-        throwError('Invalid option')
     }
     return createClassMethodDecorator('responses', response)
 }

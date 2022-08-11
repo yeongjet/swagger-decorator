@@ -1,14 +1,15 @@
 import _ from 'lodash'
-import { MergeExclusive } from 'type-fest'
-import { Schema, Parameter } from '../common/open-api'
+import { Parameter } from '../common/open-api'
 import { createMethodDecorator } from '../builder'
-import { enumToArray, throwError } from '../util'
-import { Enum, Param } from '../common'
+import { enumToArray } from '../util'
+import { Enum, Param, Schema, PrimitiveType } from '../common'
+import { MergeExclusive3 } from '../common/type-fest'
 
-export type ApiParamOption = Omit<Parameter, 'schema' | 'in'> &
-    MergeExclusive<
-        { enum: Enum },
-        { schema: Schema }
+export type ApiParamOption = Omit<Parameter, 'schema' | 'in'> & 
+    MergeExclusive3<
+        { type?: PrimitiveType, format?: string},
+        { enum?: Enum },
+        { schema?: Schema }
     >
 
 const defaultOption = {
@@ -16,14 +17,16 @@ const defaultOption = {
 }
 
 export function ApiParam(option: ApiParamOption) {
-    const { enum: enums, schema, ...openApiParam } = { ...defaultOption, ...option }
+    const { type, format, enum: enums, schema, ...openApiParam } = { ...defaultOption, ...option }
     const param: Param = { ...openApiParam, schema: { type: 'string' } }
-    if (enums) {
-        param.schema.enum = enumToArray(enums).map(toString)
+    if (type) {
+        param.schema.type = type
+        param.schema.format = format
+    } else if (enums) {
+        param.schema.enum = enumToArray(enums)
+        param.schema.type = typeof param.schema.enum.at(0)
     } else if (schema) {
         param.schema = schema
-    } else {
-        throwError('Invalid option')
     }
     return createMethodDecorator('params', param)
 }

@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import { BaseParameter } from '../common/open-api'
-import { Enum, Query, ClassicTypeSchema } from '../common'
+import { Enum, Query, Schema } from '../common'
 import { PrimitiveClass, PrimitiveString, MergeExclusive3 } from '../common/type-fest'
 import { MergeExclusive, Class } from 'type-fest'
-import { enumToArray, wrapArray, throwError } from '../util'
+import { enumToArray, wrapArray } from '../util'
 import { createMethodDecorator } from '../builder'
 
 export type ApiQueryOption = MergeExclusive<
@@ -11,7 +11,7 @@ export type ApiQueryOption = MergeExclusive<
     Omit<BaseParameter, 'schema'> & MergeExclusive3<
         { name: string, type: PrimitiveClass | PrimitiveString, isArray?: boolean },
         { name: string, enum: Enum, isArray?: boolean },
-        { name: string, schema: ClassicTypeSchema }
+        { name: string, schema: Schema }
     >
 >
 
@@ -22,7 +22,7 @@ const defaultOption = {
 
 export function ApiQuery(option: ApiQueryOption): MethodDecorator {
     const { name, type, enum: enums, schema, isArray, ...openApiParam } = { ...defaultOption, ...option }
-    const query: Query = { ...openApiParam, schema: {} }
+    const query: Query = { ...openApiParam, schema: { type: 'string' } }
     if (type) {
         query.schema = wrapArray(type, isArray)
     } else if (enums) {
@@ -31,8 +31,6 @@ export function ApiQuery(option: ApiQueryOption): MethodDecorator {
         query.schema =wrapArray(type, isArray, array)
     } else if (schema) {
         query.schema = schema
-    } else {
-        throwError('Invalid option')
     }
     return createMethodDecorator('queries', query)
 }

@@ -7,7 +7,7 @@ export const wrapArray = (type: Type, isArray: boolean, array?: any[]) => {
 }
 
 export function enumToArray(enums: Enum): number[] | string[] {
-    return _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil) : _.keys(enums).filter(_.isNaN)) as any
+    return _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil) : _.keys(enums).filter(n => _.isNaN(parseInt(n)))) as any
 }
 
 export function getSchemaPath(model: string | Function): string {
@@ -75,10 +75,6 @@ export const guard = (condition: boolean, message: string) => {
     if (!condition) {
         throw new Error(message)
     }
-}
-
-export const throwError = (message: string) => {
-    throw new Error(message)
 }
 
 interface SetOption {

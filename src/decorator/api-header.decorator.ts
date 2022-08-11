@@ -1,14 +1,15 @@
 import _ from 'lodash'
-import { MergeExclusive } from 'type-fest'
-import { Parameter, Schema } from '../common/open-api'
+import { MergeExclusive3 } from '../common/type-fest'
+import { Parameter } from '../common/open-api'
 import { createClassMethodDecorator } from '../builder'
-import { enumToArray, throwError } from '../util'
-import { Enum, Header } from '../common'
+import { enumToArray } from '../util'
+import { Enum, Schema, Header, PrimitiveType } from '../common'
 
-export type ApiHeaderOption = Omit<Parameter, 'schema' | 'in'> & 
-    MergeExclusive<
-        { enum: Enum },
-        { schema: Schema }
+export type ApiHeaderOption = Omit<Parameter, 'schema' | 'in'> &
+    MergeExclusive3<
+        { type?: PrimitiveType, format?: string},
+        { enum?: Enum },
+        { schema?: Schema }
     >
 
 const defaultOption = {
@@ -16,14 +17,16 @@ const defaultOption = {
 }
 
 export function ApiHeader(option: ApiHeaderOption) {
-    const { enum: enums, schema, ...openApiParam } = { ...defaultOption, ...option }
+    const { type, format, enum: enums, schema, ...openApiParam } = { ...defaultOption, ...option }
     const header: Header = { ...openApiParam, schema: { type: 'string' } }
-    if (enums) {
-        header.schema.enum = enumToArray(enums).map(toString)
+    if (type) {
+        header.schema.type = type
+        header.schema.format = format
+    } else if (enums) {
+        header.schema.enum = enumToArray(enums)
+        header.schema.type = typeof header.schema.enum.at(0)
     } else if (schema) {
         header.schema = schema
-    } else {
-        throwError('Invalid option')
     }
     return createClassMethodDecorator('headers', header)
 }

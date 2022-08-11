@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import { Class } from 'type-fest'
 import { RequestBody } from '../common/open-api'
-import { enumToArray, wrapArray, throwError } from '../util'
-import { Enum, Body, ClassicTypeSchema } from '../common'
+import { enumToArray, wrapArray } from '../util'
+import { Enum, Body, Schema } from '../common'
 import { MergeExclusive3 } from '../common/type-fest'
 import { createMethodDecorator } from '../builder'
 
@@ -10,7 +10,7 @@ export type ApiBodyOption = Pick<RequestBody, 'description' | 'required'> &
     MergeExclusive3<
         { type: Class<any>; isArray?: boolean },
         { enum: Enum; isArray?: boolean },
-        { schema: ClassicTypeSchema }
+        { schema: Schema }
     >
 
 const defaultOption = {
@@ -29,8 +29,6 @@ export function ApiBody(option: ApiBodyOption): MethodDecorator {
         body.schema = wrapArray(type, isArray, array)
     } else if (schema) {
         body.schema = schema
-    } else {
-        throwError('Invalid option')
     }
     return createMethodDecorator(null, { body })
 }

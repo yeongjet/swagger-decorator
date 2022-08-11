@@ -2,7 +2,7 @@ import * as storage from '../storage'
 import { ClassDecoratorParams, MethodDecoratorParams } from '../util'
 
 export const createMethodDecorator =
-    (key: any, value: any, option?: any) => (...[ target, property ]: MethodDecoratorParams) => {
+    (key: any, value: any, option?: any): MethodDecorator => (...[ target, property ]: MethodDecoratorParams) => {
         storage.setRoute(target.constructor.name, property, key ? [ key ]: [], [ value ], option)
     }
 
