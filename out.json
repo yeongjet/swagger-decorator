@@ -1,0 +1,103 @@
+{
+    "schemas": [],
+    "controllers": {
+        "CatsController": {
+            "prefix": "",
+            "consumes": [
+                "ddd/x-www-form-urlencoded"
+            ],
+            "produces": [],
+            "headers": [
+                {
+                    "required": true,
+                    "name": "kkk",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "Admin",
+                            "Moderator",
+                            "User"
+                        ]
+                    }
+                }
+            ],
+            "tags": [
+                "cats"
+            ],
+            "responses": [],
+            "security": [
+                {
+                    "bearer": []
+                }
+            ],
+            "routes": [
+                {
+                    "name": "create",
+                    "consumes": [
+                        "abc/x-www-form-urlencoded"
+                    ],
+                    "produces": [],
+                    "headers": [
+                        {
+                            "required": true,
+                            "name": "ddd",
+                            "schema": {
+                                "type": "string",
+                                "enum": [
+                                    "Country",
+                                    "Province",
+                                    "User"
+                                ]
+                            }
+                        }
+                    ],
+                    "params": [
+                        {
+                            "required": true,
+                            "name": "hello",
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "queries": [],
+                    "tags": [],
+                    "responses": [
+                        {
+                            "status": 403,
+                            "description": "Forbidden.",
+                            "schema": {}
+                        }
+                    ],
+                    "security": [],
+                    "body": {
+                        "required": true,
+                        "schema": {}
+                    },
+                    "summary": "summary: 'Create cat'"
+                },
+                {
+                    "name": "findOne",
+                    "consumes": [],
+                    "produces": [],
+                    "headers": [],
+                    "params": [],
+                    "queries": [],
+                    "tags": [],
+                    "responses": [
+                        {
+                            "status": 200,
+                            "description": "The found record",
+                            "schema": {
+                                "type": [
+                                    null
+                                ]
+                            }
+                        }
+                    ],
+                    "security": []
+                }
+            ]
+        }
+    }
+}

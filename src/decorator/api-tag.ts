@@ -1,5 +1,5 @@
 import { createClassMethodDecorator } from '../builder'
 
 export function ApiTags(...tags: string[]) {
-    return createClassMethodDecorator('tags', tags)
+    return createClassMethodDecorator('tags', tags, { isConcat: true })
 }

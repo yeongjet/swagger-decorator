@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes'
 import { Operation, Parameter, RequestBody, BaseParameter, Reference } from './open-api'
-import { RequestMethod } from './constant'
+import { HttpMethod } from './request'
 import { SetRequired, SetOptional, Class } from 'type-fest'
 import { PrimitiveClass, PrimitiveString } from './type-fest'
 import * as OpenApi from './open-api'
@@ -49,14 +49,13 @@ interface CommonOperation extends SetRequired<Pick<Operation, 'tags' | 'summary'
 export interface Route extends CommonOperation {
     name: Property
     url?: string
-    method?: RequestMethod
+    method?: HttpMethod
     body?: Body
     params: Param[]
     queries: Query[]
 }
 
 export interface Controller extends CommonOperation {
-    prefix: string
     routes: Route[]
 }
 

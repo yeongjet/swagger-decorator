@@ -45,7 +45,6 @@ export class CatsController {
   @ApiParam({ name: 'hello' })
   @ApiHeader({ name: 'ddd', enum: Region })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  @ApiConsumes('abc/x-www-form-urlencoded')
   async create(createCatDto) {
     // return this.catsService.create(createCatDto);
   }

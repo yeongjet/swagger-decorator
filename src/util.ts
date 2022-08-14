@@ -77,7 +77,22 @@ export const guard = (condition: boolean, message: string) => {
     }
 }
 
-interface SetOption {
+// merge({ a: [{ b: 2 }] }, { a: [{ c: 3 }] } => { a: [{ b: 2 }, { c: 3 }] }
+export const merge = (first: object, second: object) => {
+    const result = {}
+    _.map(first, (value, key) => {
+        if (_.isArray(value) && _.isArray(second[key])) {
+            result[key] = [ ...value as any[], ...second[key] ]
+        } else if (_.isObject(value) && _.isObject(second[key])){
+            result[key] = { ...value as object, ...second[key] }
+        } else {
+            result[key] = value
+        }
+    })
+    return result
+}
+
+export interface SetOption {
     isConcat: boolean
 }
 

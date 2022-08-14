@@ -1,7 +1,6 @@
 import { Controller, Route, Property } from '../common'
 
 export const getController = (): Controller => ({
-    prefix: '',
     consumes: [],
     produces: [],
     headers: [],
