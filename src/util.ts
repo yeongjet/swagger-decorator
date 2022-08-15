@@ -92,6 +92,10 @@ export const merge = (first: object, second: object) => {
     return result
 }
 
+export const wrapBraceIfParam = (param: string) => {
+    return param.indexOf('/:') === 0 ? `/{${param.slice(2)}}` : param
+}
+
 export interface SetOption {
     isConcat: boolean
 }

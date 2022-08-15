@@ -8,7 +8,7 @@ console.log(CatsController)
         getPrefix: (controllerName) => storage.getController(controllerName).prefix,
         getRoute: (controllerName, routeName) => {
             const route = storage.getRoute(controllerName, routeName)
-            return { method: HttpMethod[route.requestMethod], url: route.url }
+            return { method: HttpMethod[route.requestMethod], url: route.url, params: route.injectParams }
         }
     })
     console.log(aaaaa)

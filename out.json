@@ -2,7 +2,6 @@
     "schemas": [],
     "controllers": {
         "CatsController": {
-            "prefix": "",
             "consumes": [
                 "ddd/x-www-form-urlencoded"
             ],
@@ -33,9 +32,7 @@
             "routes": [
                 {
                     "name": "create",
-                    "consumes": [
-                        "abc/x-www-form-urlencoded"
-                    ],
+                    "consumes": [],
                     "produces": [],
                     "headers": [
                         {
