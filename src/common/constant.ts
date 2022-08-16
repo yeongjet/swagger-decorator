@@ -8,7 +8,7 @@ export enum HttpMethod {
     HEAD
 }
 
-export enum ParamType {
+export enum ParamSource {
     BODY,
     QUERY,
     PARAM,

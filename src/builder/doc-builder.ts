@@ -2,15 +2,14 @@ import _, { lowerCase } from 'lodash'
 import * as storage from '../storage'
 import fs from 'fs'
 import { OpenAPI } from '../common/open-api'
-import { guard, merge, wrapBraceIfParam } from '../util'
-import { ParamType } from '../common'
+import { guard, negate, merge, wrapBraceIfParam } from '../util'
+import { ParamSource } from '../common'
 
 const openApiVersion = '3.1.0'
 
-
 export type BuildDocumentOption = {
     getPrefix?: (controllerName: string) => string
-    getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: { type: ParamType | number, index: number, selectKey?: string }[] }
+    getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: { source: ParamSource, index?: number, type?: any, selectKey?: string }[] }
 }
 
 export const buildDocument = (option: BuildDocumentOption) => {
@@ -25,8 +24,12 @@ export const buildDocument = (option: BuildDocumentOption) => {
             const routePath = prefix + wrapBraceIfParam(url)
             paths[routePath] = paths[routePath] || {}
             paths[routePath][lowerCase(method)] = merge(route, globalMetadata)
-            if (params) {
-                
+            if (params?.length) {
+                for (const param of params) {
+                    const { source, index, type, selectKey } = param
+                    guard(negate(_.isNil(index) && _.isNil(type)), 'one of index and type of route param must be string')
+                    
+                }
             }
         })
     }))

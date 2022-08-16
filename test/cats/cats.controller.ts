@@ -13,6 +13,7 @@ import {
 import { CatsService } from './cats.service'
 import { CreateCatDto } from './dto/create-cat.dto'
 import { Cat } from './entities/cat.entity'
+import { Param, Body, Headers } from 'routing-decorator'
 
 enum UserRole {
   Admin,
@@ -39,13 +40,13 @@ class Person {
 export class CatsController {
   // constructor(private readonly catsService: CatsService) {}
 
-  @Post()
+  @Post('sd')
   @ApiOperation({ summary: "summary: 'Create cat'" })
   @ApiBody({ type: CreateCatDto })
   @ApiParam({ name: 'hello' })
   @ApiHeader({ name: 'ddd', enum: Region })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  async create(createCatDto) {
+  async create(@Body() createCatDto, @Param('he') param, @Headers() header) {
     // return this.catsService.create(createCatDto);
   }
 
