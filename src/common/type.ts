@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes'
 import { Operation, Parameter, RequestBody, BaseParameter, Reference } from './open-api'
-import { HttpMethod } from './request'
+import { HttpMethod } from './constant'
 import { SetRequired, SetOptional, Class } from 'type-fest'
 import { PrimitiveClass, PrimitiveString } from './type-fest'
 import * as OpenApi from './open-api'

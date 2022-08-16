@@ -3,13 +3,14 @@ import * as storage from '../storage'
 import fs from 'fs'
 import { OpenAPI } from '../common/open-api'
 import { guard, merge, wrapBraceIfParam } from '../util'
-import { Type } from '../common'
+import { ParamType } from '../common'
 
 const openApiVersion = '3.1.0'
 
+
 export type BuildDocumentOption = {
     getPrefix?: (controllerName: string) => string
-    getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params: Type }
+    getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: { type: ParamType | number, index: number, selectKey?: string }[] }
 }
 
 export const buildDocument = (option: BuildDocumentOption) => {
@@ -24,6 +25,9 @@ export const buildDocument = (option: BuildDocumentOption) => {
             const routePath = prefix + wrapBraceIfParam(url)
             paths[routePath] = paths[routePath] || {}
             paths[routePath][lowerCase(method)] = merge(route, globalMetadata)
+            if (params) {
+                
+            }
         })
     }))
     const doc: OpenAPI = {
