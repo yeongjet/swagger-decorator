@@ -1,4 +1,4 @@
-import _, { lowerCase } from 'lodash'
+import _ from 'lodash'
 import * as storage from '../storage'
 import fs from 'fs'
 import { OpenAPI } from '../common/open-api'
@@ -9,7 +9,7 @@ const openApiVersion = '3.1.0'
 
 export type BuildDocumentOption = {
     getPrefix?: (controllerName: string) => string
-    getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: { source: ParamSource, index?: number, type?: any, selectKey?: string }[] }
+    getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: { source: `${ParamSource}`, type: any, selectKey?: string }[] }
 }
 
 export const buildDocument = (option: BuildDocumentOption) => {
@@ -23,14 +23,13 @@ export const buildDocument = (option: BuildDocumentOption) => {
             const { method, url, params } = getRoute(controllerName, route.name as string)
             const routePath = prefix + wrapBraceIfParam(url)
             paths[routePath] = paths[routePath] || {}
-            paths[routePath][lowerCase(method)] = merge(route, globalMetadata)
-            if (params?.length) {
-                for (const param of params) {
-                    const { source, index, type, selectKey } = param
-                    guard(negate(_.isNil(index) && _.isNil(type)), 'one of index and type of route param must be string')
-                    
-                }
-            }
+            const parameters = (params || []).map(param => ({
+                type: param.type,
+                name: param.selectKey,
+                in: param.source,
+                required: true
+            }))
+            paths[routePath][method.toLowerCase()] = { parameters, ...merge(route, globalMetadata) }
         })
     }))
     const doc: OpenAPI = {

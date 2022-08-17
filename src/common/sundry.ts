@@ -1,3 +1,5 @@
+export type Property = string | symbol
+
 export enum HttpMethod {
     GET,
     POST,
@@ -9,8 +11,9 @@ export enum HttpMethod {
 }
 
 export enum ParamSource {
-    BODY,
-    QUERY,
-    PARAM,
-    HEADERS
+    BODY = 'body',
+    QUERY = 'query',
+    PARAM = 'param',
+    HEADERS = 'header'
 }
+

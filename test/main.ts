@@ -1,19 +1,18 @@
-import { buildDocument, HttpMethod, ParamSource as SwaggerParamSource } from '../src'
+import { buildDocument, HttpMethod } from '../src'
 import { CatsController } from './cats'
-import { storage, Storage, ParamSource as RoutingParamSource } from 'routing-decorator'
-
-
+import { storage, Storage, ParamSource as ParamSource } from 'routing-decorator'
+import _ from 'lodash';
 
 console.log(CatsController)
 
 const convertParams = (params: Storage.Param[]) => {
-    const typeMapping = {
-        [RoutingParamSource.BODY]: SwaggerParamSource.BODY,
-        [RoutingParamSource.QUERY]: SwaggerParamSource.QUERY,
-        [RoutingParamSource.PARAM]: SwaggerParamSource.PARAM,
-        [RoutingParamSource.HEADERS]: SwaggerParamSource.HEADERS
+    const sourceMapping = {
+        [ParamSource.BODY]: 'body',
+        [ParamSource.QUERY]: 'query',
+        [ParamSource.PARAM]: 'param',
+        [ParamSource.HEADERS]: 'header'
     }
-    return params.map(n => ({ ...n, source: typeMapping[n.source] }))
+    return params.map(n => ({ ...n, source: sourceMapping[n.source] })).filter(n => _.negate(_.isNil)(n.source))
 }
 
 ;(async () => {

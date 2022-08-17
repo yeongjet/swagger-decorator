@@ -1,19 +1,15 @@
 import { StatusCodes } from 'http-status-codes'
-import { Operation, Parameter, RequestBody, BaseParameter, Reference } from './open-api'
-import { HttpMethod } from './constant'
 import { SetRequired, SetOptional, Class } from 'type-fest'
+import { Operation, Parameter, RequestBody, BaseParameter, Reference } from './open-api'
 import { PrimitiveClass, PrimitiveString } from './type-fest'
+import { HttpMethod, Property } from './sundry'
 import * as OpenApi from './open-api'
-
-export type Enum = number[] | string[] | Record<number, string>
-
-export type Property = string | symbol
-
-export type PartialRequired<T, K extends keyof T> = Required<Pick<T, K>> & Partial<Omit<T, K>>
 
 export type PrimitiveType = PrimitiveClass | PrimitiveString
 
 export type Type = Class<any> | PrimitiveType
+
+export type Enum = number[] | string[] | Record<number, string>
 
 export type Schema = Omit<OpenApi.Schema, 'type' | 'allOf' | 'oneOf' | 'anyOf' | 'not' | 'items' | 'properties' | 'additionalProperties' | 'patternProperties' > & {
     type?: Type
@@ -36,8 +32,6 @@ export interface Body extends Pick<RequestBody, 'description' | 'required'> { sc
 export interface Query extends Omit<BaseParameter, 'schema'> { schema: Schema }
 
 export interface Response extends Omit<SetOptional<OpenApi.Response, 'description'>, 'content'> { status: StatusCodes, schema: Schema }
-
-// export interface Property extends Merge<Pick<RequestBody, 'description' | 'required'>, { schema: Merge<Schema, { type?: Type }> }> {}
 
 interface CommonOperation extends SetRequired<Pick<Operation, 'tags' | 'summary' | 'description' | 'externalDocs' | 'security'>, 'tags' | 'security'> {
     headers: Header[]
