@@ -1,11 +1,11 @@
 import { buildDocument, HttpMethod } from '../src'
 import { CatsController } from './cats'
-import { storage, Storage, ParamSource as ParamSource } from 'routing-decorator'
+import { storage, Storage, ParamSource } from 'routing-decorator'
 import _ from 'lodash';
 
 console.log(CatsController)
 
-const convertParams = (params: Storage.Param[]) => {
+const transformParams = (params: Storage.Param[]) => {
     const sourceMapping = {
         [ParamSource.BODY]: 'body',
         [ParamSource.QUERY]: 'query',
@@ -20,7 +20,7 @@ const convertParams = (params: Storage.Param[]) => {
         getPrefix: (controllerName) => storage.getController(controllerName).prefix,
         getRoute: (controllerName, routeName) => {
             const { requestMethod, url, params } = storage.getRoute(controllerName, routeName)
-            return { method: HttpMethod[requestMethod], url, params: convertParams(params) }
+            return { method: HttpMethod[requestMethod], url, params: transformParams(params) }
         }
     })
     console.log(aaaaa)
