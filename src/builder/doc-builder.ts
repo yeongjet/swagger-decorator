@@ -14,39 +14,29 @@ export type BuildDocumentOption = {
     getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: Param[] }
 }
 
-const mergeParams = (bindingParams: Param[], { body, params, queries, headers }: Route) => {
+const mergeParams = (paramsBinded: Param[], { body, params, queries, headers }: Route) => {
     const result: any[] = []
-    for(const bindingParam of bindingParams) {
-        const { source, type, selectKey } = bindingParam
-        let obj = { in: source, type, name: selectKey, required: true }
-        if (obj.type === Object) {
-            continue
-        }
-        if (obj.name) {
-            result.push(obj)
-            continue
-        }
-        if (obj.in === 'body') {
-            if (!body) {
-                // TODO
-                // @ts-ignore
-                obj.name = _.isFunction(type) ? type.name : type
-                result.push(obj)
-            }
-            continue
-        }
-        // TODO
-        obj.name = 'sd'
-        const total = { param: params, query: queries, header: headers }
-        for (const key in total) {
-            for (const item of total[key]) {
-                if (_.find(result, { name: item.name, in: key })) {
-                    continue
-                }
-                result.push(item.name === obj.name ? Object.assign(obj, item) : { ...item, in: key })
-            }
+    const validParams = paramsBinded.filter(n => n.type !== Object)
+        .map(({ source, type, selectKey }) => ({ in: source, type, name: selectKey, required: true }))
+    const unnamedParams = _.remove(validParams, n => _.isNil(n.name))
+    const namedParams = validParams
+    result.push(...namedParams)
+    if (!body) {
+        const bodyBinded = _.find(unnamedParams, { in: ParamSource.BODY })
+        if (bodyBinded) {
+            const { type } = bodyBinded
+            // @ts-ignore
+            bodyBinded.name = _.isFunction(type) ? type.name : type
+            result.push(bodyBinded)
         }
     }
+    _.map({ [ParamSource.PARAM]: params, [ParamSource.QUERY]: queries, [ParamSource.HEADERS]: headers }, (items, key) => _.map(items, item => {
+        // TODO
+        if (!_.find(result, { name: item.name, in: key })) {
+            const paramBinded = _.find(unnamedParams, { in: key, name: item.name })
+            result.push(paramBinded ? Object.assign(paramBinded, item) : item)
+        }
+    }))
     return result
 }
 

@@ -23,13 +23,13 @@ export type Schema = Omit<OpenApi.Schema, 'type' | 'allOf' | 'oneOf' | 'anyOf' |
     patternProperties?: Schema | Reference | any
 }
 
-export interface Header extends Pick<Parameter, 'name'> { schema: Schema }
+export interface Header { name: string, schema: Schema }
 
-export interface Param extends Pick<Parameter, 'name'> { schema: Schema }
+export interface Param { name: string, schema: Schema }
 
 export interface Body extends Pick<RequestBody, 'description' | 'required'> { schema: Schema }
 
-export interface Query extends Omit<BaseParameter, 'schema'> { schema: Schema }
+export interface Query { name?: string, schema: Schema }
 
 export interface Response extends Omit<SetOptional<OpenApi.Response, 'description'>, 'content'> { status: StatusCodes, schema: Schema }
 
