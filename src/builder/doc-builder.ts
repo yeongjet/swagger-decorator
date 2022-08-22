@@ -15,28 +15,29 @@ export type BuildDocumentOption = {
 }
 
 const mergeParams = (paramsBinded: Param[], { body, params, queries, headers }: Route) => {
-    const result: any[] = []
+    const paramsWithType: any[] = []
     // exclude basic type and @Body('xx')
     const validParams = paramsBinded.filter(n => n.type !== Object &&  !(_.isNil(n.name) && n.in === ParamIn.BODY))
         .map(n => ({ ...n, required: true }))
     const unnamedParams = _.remove(validParams, n => _.isNil(n.name))
-    result.push(...validParams)
+    paramsWithType.push(...validParams)
     if (!body) {
         const bodyBinded = _.find(unnamedParams, { in: ParamIn.BODY })
         if (bodyBinded) {
             // @ts-ignore
             bodyBinded.name = _.isFunction(bodyBinded.type) ? bodyBinded.type.name : bodyBinded.type
-            result.push(bodyBinded)
+            paramsWithType.push(bodyBinded)
         }
     }
-    _.map({ [ParamIn.PARAM]: params, [ParamIn.QUERY]: queries, [ParamIn.HEADERS]: headers }, (items, key) => _.map(items, item => {
-        // TODO
-        if (!_.find(result, { name: item.name, in: key })) {
-            const paramBinded = _.find(unnamedParams, { in: key, name: item.name })
-            result.push(paramBinded ? Object.assign(paramBinded, item) : item)
+    for (const [ key, value ] of Object.entries({ [ParamIn.PATH]: params, [ParamIn.QUERY]: queries, [ParamIn.HEADERS]: headers })){
+        for (const item of value) {
+            if (!_.find(paramsWithType, { name: item.name, in: key })) {
+                const paramBinded = _.find(unnamedParams, { in: key, name: item.name })
+                paramsWithType.push(paramBinded ? Object.assign(paramBinded, item) : item)
+            }
         }
-    }))
-    return result
+    }
+    return paramsWithType
 }
 
 export const buildDocument = (option: BuildDocumentOption) => {

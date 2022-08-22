@@ -13,7 +13,7 @@ export enum HttpMethod {
 export enum ParamIn {
     BODY = 'body',
     QUERY = 'query',
-    PARAM = 'path',
+    PATH = 'path',
     HEADERS = 'header'
 }
 
