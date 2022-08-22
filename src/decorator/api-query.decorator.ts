@@ -21,8 +21,8 @@ const defaultOption = {
 }
 
 export function ApiQuery(option: ApiQueryOption): MethodDecorator {
-    const { type, enum: enums, schema, isArray, ...openApiParam } = { ...defaultOption, ...option }
-    const query: Query = { ...openApiParam, schema: { type: 'string' } }
+    const { type, enum: enums, schema, isArray, ...apiParam } = { ...defaultOption, ...option }
+    const query: Query = { ...apiParam, schema: { type: 'string' } }
     if (type) {
         query.schema = wrapArray(type, isArray)
     } else if (enums) {

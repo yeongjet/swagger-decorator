@@ -1,5 +1,5 @@
 import { set } from '../util'
-import { Property, Storage } from '../common'
+import { PropertyKey, Storage } from '../common'
 import * as defaults from './default'
 
 // const openApiVersion = '3.1.0'
@@ -12,13 +12,17 @@ import * as defaults from './default'
 //     paths:{}
 // }
 const storage: Storage = {
-    schemas: [],
+    models: {},
     controllers: {}
 }
+export const setModel = (modelName: string, values: any[]) => 
+    set(storage.models, [ modelName ], [ defaults.getModel(modelName), ...values ], { isConcat: true })
 
-export const setRoute = (controllerName: string, routeName: Property, keys: any[], values: any[], option?: any) => set(storage.controllers, [ controllerName, { routes: { name: routeName }}, ...keys ], [ defaults.getController(), defaults.getRoute(routeName), ...values ], option)
+export const setRoute = (controllerName: string, routeName: PropertyKey, keys: any[], values: any[], option?: any) => 
+    set(storage.controllers, [ controllerName, { routes: { name: routeName }}, ...keys ], [ defaults.getController(), defaults.getRoute(routeName), ...values ], option)
 
-export const setController = (controllerName: string, keys: any[], values: any[], option?: any) => set(storage.controllers, [ controllerName, ...keys ], [ defaults.getController(), ...values ], option)
+export const setController = (controllerName: string, keys: any[], values: any[], option?: any) => 
+    set(storage.controllers, [ controllerName, ...keys ], [ defaults.getController(), ...values ], option)
 
 export const get = () => storage
 

@@ -9,10 +9,11 @@ const transformParams = (params: Storage.Param[]) => {
     const sourceMapping = {
         [ParamSource.BODY]: 'body',
         [ParamSource.QUERY]: 'query',
-        [ParamSource.PARAM]: 'param',
+        [ParamSource.PARAM]: 'path',
         [ParamSource.HEADERS]: 'header'
     }
-    return params.map(n => ({ ...n, source: sourceMapping[n.source] })).filter(n => _.negate(_.isNil)(n.source))
+    // filter @IP @SESSION...
+    return params.map(n => ({ ...n, in: sourceMapping[n.source] })).filter(n => _.negate(_.isNil)(n.in))
 }
 
 ;(async () => {

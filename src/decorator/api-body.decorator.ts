@@ -19,8 +19,8 @@ const defaultOption = {
 }
 
 export function ApiBody(option: ApiBodyOption): MethodDecorator {
-    const { type, enum: enums, schema, isArray, ...openApiParam } = { ...defaultOption, ...option }
-    const body: Body = { ...openApiParam, schema: {} }
+    const { type, enum: enums, schema, isArray, ...apiParam } = { ...defaultOption, ...option }
+    const body: Body = { ...apiParam, schema: {} }
     if (type) {
         body.schema = wrapArray(type, isArray)
     } else if (enums) {

@@ -15,49 +15,6 @@ export function getSchemaPath(model: string | Function): string {
     return `#/components/schemas/${modelName}`
 }
 
-export type ClassDecoratorParams = [
-    target: Function
-]
-
-export type MethodDecoratorParams = [
-    target: Object,
-    property: Property,
-    descriptor: PropertyDescriptor
-]
-
-export type PropertyDecoratorParams = [
-    target: Object,
-    property: Property
-]
-
-export type ParameterDecoratorParams = [
-    target: Object,
-    property: Property,
-    parameterIndex: number
-]
-
-type DecoratorParams = ClassDecoratorParams | PropertyDecoratorParams | MethodDecoratorParams | ParameterDecoratorParams
-
-export const isClassDecoration = (params: DecoratorParams): params is ClassDecoratorParams => {
-    const [ target, property, descriptor ] = params
-    return !_.isUndefined(target) && _.isUndefined(property) && _.isUndefined(descriptor)
-}
-
-export const isPropertyDecoration = (params: DecoratorParams): params is PropertyDecoratorParams => {
-    const [ target, property, descriptor ] = params
-    return !_.isUndefined(target) && !_.isUndefined(property) && _.isUndefined(descriptor)
-}
-
-export const isMethodDecoration = (params: DecoratorParams): params is MethodDecoratorParams => {
-    const [ target, property, descriptor ] = params
-    return !_.isUndefined(target) && !_.isUndefined(property) && _.isObject(descriptor)
-}
-
-export const isParameterDecoration = (params: DecoratorParams): params is ParameterDecoratorParams => {
-    const [ target, property, parameterIndex ] = params
-    return !_.isUndefined(target) && !_.isUndefined(property) && _.isNumber(parameterIndex)
-}
-
 export const isContain = (first: object, second: object) => {
     for (const key of Object.keys(second)) {
         if (first[key] !== second[key]) {

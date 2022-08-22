@@ -17,8 +17,8 @@ const defaultOption = {
 }
 
 export function ApiHeader(option: ApiHeaderOption) {
-    const { type, format, enum: enums, schema, ...openApiParam } = { ...defaultOption, ...option }
-    const header: Header = { ...openApiParam, schema: { type: 'string' } }
+    const { type, format, enum: enums, schema, ...apiParam } = { ...defaultOption, ...option }
+    const header: Header = { ...apiParam, schema: { type: 'string' } }
     if (type) {
         header.schema.type = type
         header.schema.format = format

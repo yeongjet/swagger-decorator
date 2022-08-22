@@ -1,5 +1,5 @@
 import { ApiHeader, ApiHeaderOption } from './api-header.decorator'
-import { ClassDecoratorParams, MethodDecoratorParams } from '../util'
+import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
 
 export const ApiHeaders = (...headers: ApiHeaderOption[]) => {
     return (...params: ClassDecoratorParams | MethodDecoratorParams): any => {

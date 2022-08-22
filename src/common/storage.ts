@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 import { SetRequired, SetOptional, Class } from 'type-fest'
 import { Operation, Parameter, RequestBody, BaseParameter, Reference } from './open-api'
 import { PrimitiveClass, PrimitiveString } from './type-fest'
-import { HttpMethod, Property } from './sundry'
+import { HttpMethod, PropertyKey } from './sundry'
 import * as OpenApi from './open-api'
 
 export type PrimitiveType = PrimitiveClass | PrimitiveString
@@ -31,6 +31,8 @@ export interface Body extends Pick<RequestBody, 'description' | 'required'> { sc
 
 export interface Query { name?: string, schema: Schema }
 
+export interface Property { name?: string, schema: Schema }
+
 export interface Response extends Omit<SetOptional<OpenApi.Response, 'description'>, 'content'> { status: StatusCodes, schema: Schema }
 
 interface CommonOperation extends SetRequired<Pick<Operation, 'tags' | 'summary' | 'description' | 'externalDocs' | 'security'>, 'tags' | 'security'> {
@@ -41,7 +43,7 @@ interface CommonOperation extends SetRequired<Pick<Operation, 'tags' | 'summary'
 }
 
 export interface Route extends CommonOperation {
-    name: Property
+    name: PropertyKey
     url?: string
     method?: HttpMethod
     body?: Body
@@ -53,7 +55,12 @@ export interface Controller extends CommonOperation {
     routes: Route[]
 }
 
+export interface Model {
+    name: PropertyKey
+    properties: { key: string, schema: Schema }[]
+}
+
 export type Storage = {
-    schemas: Function[]
+    models: Record<string, Model>
     controllers: Record<string, Controller>
 }

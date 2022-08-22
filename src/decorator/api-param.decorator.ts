@@ -17,8 +17,8 @@ const defaultOption = {
 }
 
 export function ApiParam(option: ApiParamOption) {
-    const { type, format, enum: enums, schema, ...openApiParam } = { ...defaultOption, ...option }
-    const param: Param = { ...openApiParam, schema: { type: 'string' } }
+    const { type, format, enum: enums, schema, ...apiParam } = { ...defaultOption, ...option }
+    const param: Param = { ...apiParam, schema: { type: 'string' } }
     if (type) {
         param.schema.type = type
         param.schema.format = format

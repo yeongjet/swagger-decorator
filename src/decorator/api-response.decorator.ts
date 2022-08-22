@@ -17,8 +17,8 @@ const defaultOption = {
 }
 
 export function ApiResponse(option: ApiResponseOption): MethodDecorator & ClassDecorator {
-    const { type, schema, isArray, ...openApiParam } = { ...defaultOption, ...option }
-    const response: Response = { ...openApiParam, schema: {} }
+    const { type, schema, isArray, ...apiParam } = { ...defaultOption, ...option }
+    const response: Response = { ...apiParam, schema: {} }
     if (type) {
         response.schema = wrapArray(type, isArray)
     } else if (schema) {
