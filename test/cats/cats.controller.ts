@@ -6,9 +6,11 @@ import {
   ApiOkResponse,
   ApiTags,
   ApiBody,
+  ApiQuery,
   ApiHeader,
   ApiConsumes,
   ApiParam,
+  ApiProperty
 } from '../../src';
 import { CatsService } from './cats.service'
 import { CreateCatDto } from './dto/create-cat.dto'
@@ -28,7 +30,9 @@ enum Region {
 }
 
 class Person {
+  @ApiProperty()
   name: string
+  @ApiProperty()
   age: number
 }
 
@@ -45,6 +49,7 @@ export class CatsController {
   @ApiBody({ type: CreateCatDto })
   @ApiParam({ name: 'hello' })
   @ApiHeader({ name: 'ddd', enum: Region })
+  @ApiQuery({ type: Person })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   async create(@Body() createCatDto, @Param('he') param, @Headers() header, @IP() ip) {
     // return this.catsService.create(createCatDto);

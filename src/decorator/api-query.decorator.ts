@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { BaseParameter } from '../common/open-api'
-import { Enum, Query, Schema } from '../common'
+import { Enum, Schema } from '../common'
 import { PrimitiveClass, PrimitiveString, MergeExclusive3 } from '../common/type-fest'
 import { MergeExclusive, Class } from 'type-fest'
 import { enumToArray, wrapArray } from '../util'
@@ -22,12 +22,12 @@ const defaultOption = {
 
 export function ApiQuery(option: ApiQueryOption): MethodDecorator {
     const { type, enum: enums, schema, isArray, ...apiParam } = { ...defaultOption, ...option }
-    const query: Query = { ...apiParam, schema: { type: 'string' } }
+    const query = { ...apiParam, schema: { type: 'string' } as Schema }
     if (type) {
         query.schema = wrapArray(type, isArray)
     } else if (enums) {
         const array = enumToArray(enums)
-        const type = typeof array[0]
+        const type = typeof array.at(0)
         query.schema =wrapArray(type, isArray, array)
     } else if (schema) {
         query.schema = schema

@@ -3,7 +3,7 @@ import { MergeExclusive3 } from '../common/type-fest'
 import { Parameter } from '../common/open-api'
 import { createClassMethodDecorator } from '../builder'
 import { enumToArray } from '../util'
-import { Enum, Schema, Header, PrimitiveType } from '../common'
+import { Enum, Schema, PrimitiveType } from '../common'
 
 export type ApiHeaderOption = Omit<Parameter, 'schema' | 'in'> &
     MergeExclusive3<
@@ -18,7 +18,7 @@ const defaultOption = {
 
 export function ApiHeader(option: ApiHeaderOption) {
     const { type, format, enum: enums, schema, ...apiParam } = { ...defaultOption, ...option }
-    const header: Header = { ...apiParam, schema: { type: 'string' } }
+    const header = { ...apiParam, schema: { type: 'string' } as Schema }
     if (type) {
         header.schema.type = type
         header.schema.format = format

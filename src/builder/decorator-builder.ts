@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import * as storage from '../storage'
 import { SetOption } from '../util'
 import { PropertyKey } from '../common'
@@ -24,8 +25,9 @@ export type ParameterDecoratorParams = [
 ]
 
 export const createPropertyDecorator =
-    (value: any, option?: SetOption): PropertyDecorator => (...[ target, property ]: PropertyDecoratorParams) => {
-        storage.setModel(target.constructor.name, property, [ value ], option)
+    (value: any): PropertyDecorator => (...[ target, property ]: PropertyDecoratorParams) => {
+        const type = Reflect.getMetadata('design:type', target, property);
+        storage.setModel(target.constructor.name, property, [ { type, ...value} ])
     }
 
 export const createMethodDecorator =

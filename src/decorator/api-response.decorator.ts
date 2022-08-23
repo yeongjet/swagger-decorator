@@ -1,11 +1,11 @@
 import _ from 'lodash'
 import { StatusCodes } from 'http-status-codes'
 import { SetOptional, MergeExclusive } from 'type-fest'
-import { Response, Type, Schema } from '../common'
+import { Storage, Type, Schema } from '../common'
 import { createClassMethodDecorator } from '../builder'
 import { wrapArray } from '../util'
 
-export type ApiResponseOption = Omit<SetOptional<Response, 'status'>, 'schema'> & 
+export type ApiResponseOption = Omit<SetOptional<Storage.Response, 'status'>, 'schema'> & 
     MergeExclusive<
         { type?: Type, isArray?: boolean },
         { schema?: Schema }
@@ -18,7 +18,7 @@ const defaultOption = {
 
 export function ApiResponse(option: ApiResponseOption): MethodDecorator & ClassDecorator {
     const { type, schema, isArray, ...apiParam } = { ...defaultOption, ...option }
-    const response: Response = { ...apiParam, schema: {} }
+    const response = { ...apiParam, schema: {} as Schema }
     if (type) {
         response.schema = wrapArray(type, isArray)
     } else if (schema) {

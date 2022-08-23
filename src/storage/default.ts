@@ -1,6 +1,6 @@
-import { Controller, Route, Model, PropertyKey } from '../common'
+import { Storage, PropertyKey } from '../common'
 
-export const getController = (): Controller => ({
+export const getController = (): Storage.Controller => ({
     consumes: [],
     produces: [],
     headers: [],
@@ -10,7 +10,7 @@ export const getController = (): Controller => ({
     routes: []
 })
 
-export const getRoute = (name: PropertyKey): Route => ({
+export const getRoute = (name: PropertyKey): Storage.Controller.Route => ({
     name,
     consumes: [],
     produces: [],
@@ -22,7 +22,11 @@ export const getRoute = (name: PropertyKey): Route => ({
     security: []
 })
 
-export const getModel = (name: PropertyKey): Model => ({
-    name,
+export const getModel = (): Storage.Model => ({
     properties: []
+})
+
+export const getProperty = (key: PropertyKey): Storage.Model.Property => ({
+    key,
+    schema: {}
 })

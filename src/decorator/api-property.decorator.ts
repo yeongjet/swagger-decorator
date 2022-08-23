@@ -1,5 +1,5 @@
 import { BaseParameter } from '../common/open-api'
-import { Enum, Property, Schema, Type } from '../common'
+import { Enum, Schema, Type } from '../common'
 import { PrimitiveClass, PrimitiveString, MergeExclusive3 } from '../common/type-fest'
 import { enumToArray, wrapArray } from '../util'
 import { MergeExclusive, Class } from 'type-fest'
@@ -27,7 +27,7 @@ const defaultOption = {
 
 export function ApiProperty(option: ApiPropertyOption = defaultOption): PropertyDecorator {
     const { type, enum: enums, schema, isArray, ...apiParam } = { ...defaultOption, ...option }
-    const property: Property = { ...apiParam, schema: { type } }
+    const property = { ...apiParam, schema: { type } as Schema }
     if (type) {
       property.schema = wrapArray(type, isArray)
     } else if (enums) {

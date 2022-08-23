@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { Enum, Property, Type } from './common'
+import { Enum, Type } from './common'
 
 export const wrapArray = (type: Type, isArray: boolean, array?: any[]) => {
     const items = array ? { type, enum: array } : { type }
@@ -76,7 +76,7 @@ export const set = (target: any, keys: (string | Record<string, any>)[], values:
             parent = target
             target = target[key]
         } else if (_.isObject(key)) {
-            const subKey = Object.keys(key)[0]
+            const subKey = Object.keys(key).at(0) as string
             guard(
                 _.isString(subKey) && _.isObject(key[subKey]),
                 `the key:${JSON.stringify(key)} of ${target}(${typeof target}) is invalid`

@@ -3,37 +3,41 @@ import * as storage from '../storage'
 import fs from 'fs'
 import { OpenAPI } from '../common/open-api'
 import { guard, negate, merge, wrapBraceIfParam } from '../util'
-import { Type, ParamIn, Route } from '../common'
+import { Type, ParamType, Storage } from '../common'
 
 const openApiVersion = '3.1.0'
 
-type Param = { in: `${ParamIn}`, type: Type, name?: string }
+type Param = { in: `${ParamType}`, type: Type, name?: string }
 
 export type BuildDocumentOption = {
     getPrefix?: (controllerName: string) => string
     getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: Param[] }
 }
 
-const mergeParams = (paramsBinded: Param[], { body, params, queries, headers }: Route) => {
+const mergeParams = (methodParams: Param[], { body, params, queries, headers }: Storage.Controller.Route) => {
     const paramsWithType: any[] = []
     // exclude basic type and @Body('xx')
-    const validParams = paramsBinded.filter(n => n.type !== Object &&  !(_.isNil(n.name) && n.in === ParamIn.BODY))
+    const validMethodParams = methodParams.filter(n => n.type !== Object &&  !(_.isNil(n.name) && n.in === ParamType.BODY))
         .map(n => ({ ...n, required: true }))
-    const unnamedParams = _.remove(validParams, n => _.isNil(n.name))
-    paramsWithType.push(...validParams)
+    const unnamedMethodParams = _.remove(validMethodParams, n => _.isNil(n.name))
+    paramsWithType.push(...validMethodParams)
+    for (const n of unnamedMethodParams) {
+        const s = n.type
+    }
     if (!body) {
-        const bodyBinded = _.find(unnamedParams, { in: ParamIn.BODY })
+        const bodyBinded = _.find(unnamedMethodParams, { in: ParamType.BODY })
         if (bodyBinded) {
             // @ts-ignore
             bodyBinded.name = _.isFunction(bodyBinded.type) ? bodyBinded.type.name : bodyBinded.type
             paramsWithType.push(bodyBinded)
         }
     }
-    for (const [ key, value ] of Object.entries({ [ParamIn.PATH]: params, [ParamIn.QUERY]: queries, [ParamIn.HEADERS]: headers })){
+    for (const [ key, value ] of Object.entries({ [ParamType.PATH]: params, [ParamType.QUERY]: queries, [ParamType.HEADERS]: headers })){
         for (const item of value) {
             if (!_.find(paramsWithType, { name: item.name, in: key })) {
-                const paramBinded = _.find(unnamedParams, { in: key, name: item.name })
-                paramsWithType.push(paramBinded ? Object.assign(paramBinded, item) : item)
+                const paramBinded = _.find(unnamedMethodParams, { in: key, name: item.name })
+                const paramAssign = paramBinded ? Object.assign(paramBinded, item) : item
+                paramsWithType.push(paramAssign)
             }
         }
     }
@@ -43,21 +47,24 @@ const mergeParams = (paramsBinded: Param[], { body, params, queries, headers }: 
 export const buildDocument = (option: BuildDocumentOption) => {
     const { getPrefix, getRoute } = option
     const paths = {}
-    _.map(storage.get().controllers, ((controllerStorage, controllerName) => {
-        const { routes, ...routeGlobalStorage } = controllerStorage
-        const prefix = getPrefix ? getPrefix(controllerName) : ''
-        _.map(routes, routeStorage => {
-            guard(_.isString(routeStorage.name), 'route name must be string')
-            const routeBinding = getRoute(controllerName, routeStorage.name as string)
-             const fullPath = prefix + wrapBraceIfParam(routeBinding.url)
-            paths[fullPath] = paths[fullPath] || {}
+    const { controllers, models } = storage.get()
+    for (const [ controllerName, controller ] of Object.entries(controllers)) {
+        const { routes, ...global } = controller
+        const routePathPrefix = getPrefix ? getPrefix(controllerName) : ''
+        for (const route of routes) {
+            guard(_.isString(route.name), 'route name must be string')
+            const routeBinding = getRoute(controllerName, route.name as string)
+             const routePath = routePathPrefix + wrapBraceIfParam(routeBinding.url)
+            paths[routePath] = paths[routePath] || {}
             let parameters: any = []
             if (routeBinding.params) {
-                parameters = mergeParams(routeBinding.params, routeStorage)
+                parameters = mergeParams(routeBinding.params, route)
             }
-            paths[fullPath][routeBinding.method.toLowerCase()] = { parameters, ...merge(routeStorage, routeGlobalStorage) }
-        })
-    }))
+            const httpMethod = routeBinding.method.toLowerCase()
+            paths[routePath][httpMethod] = { parameters, ...merge(route, global) }
+        }
+    }
+
     const doc: OpenAPI = {
         openapi: openApiVersion,
         info: {

@@ -1,5 +1,5 @@
-import { Property } from '../common'
+import { PropertyKey } from '../common'
 
 export function ApiExcludeEndpoint(): MethodDecorator {
-    return (target: Object, property: Property, descriptor: PropertyDescriptor) => {}
+    return (target: Object, property: PropertyKey, descriptor: PropertyDescriptor) => {}
 }

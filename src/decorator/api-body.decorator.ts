@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { Class } from 'type-fest'
 import { RequestBody } from '../common/open-api'
 import { enumToArray, wrapArray } from '../util'
-import { Enum, Body, Schema } from '../common'
+import { Enum, Schema } from '../common'
 import { MergeExclusive3 } from '../common/type-fest'
 import { createMethodDecorator } from '../builder'
 
@@ -20,12 +20,12 @@ const defaultOption = {
 
 export function ApiBody(option: ApiBodyOption): MethodDecorator {
     const { type, enum: enums, schema, isArray, ...apiParam } = { ...defaultOption, ...option }
-    const body: Body = { ...apiParam, schema: {} }
+    const body = { ...apiParam, schema: {} }
     if (type) {
         body.schema = wrapArray(type, isArray)
     } else if (enums) {
         const array = enumToArray(enums)
-        const type = typeof array[0]
+        const type = typeof array.at(0)
         body.schema = wrapArray(type, isArray, array)
     } else if (schema) {
         body.schema = schema
