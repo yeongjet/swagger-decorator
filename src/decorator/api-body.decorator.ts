@@ -1,25 +1,21 @@
 import _ from 'lodash'
 import { Class } from 'type-fest'
-import { RequestBody } from '../common/open-api'
 import { enumToArray, wrapArray } from '../util'
 import { Enum, Schema } from '../common'
-import { MergeExclusive3 } from '../common/type-fest'
-import { createMethodDecorator } from '../builder'
+import { BodyOption, createMethodDecorator } from '../builder'
 
-export type ApiBodyOption = Pick<RequestBody, 'description' | 'required'> &
-    MergeExclusive3<
-        { type: Class<any>; isArray?: boolean },
-        { enum: Enum; isArray?: boolean },
-        { schema: Schema }
-    >
+export interface ApiBodyOption extends BodyOption {
+    type?: Class<any>
+    enum?: Enum
+    isArray?: boolean
+}
 
 const defaultOption = {
-    isArray: false,
-    required: true
+    isArray: false
 }
 
 export function ApiBody(option: ApiBodyOption): MethodDecorator {
-    const { type, enum: enums, schema, isArray, ...apiParam } = { ...defaultOption, ...option }
+    const { type, enum: enums, isArray, schema, ...apiParam } = { ...defaultOption, ...option }
     const body = { ...apiParam, schema: {} }
     if (type) {
         body.schema = wrapArray(type, isArray)
@@ -30,5 +26,5 @@ export function ApiBody(option: ApiBodyOption): MethodDecorator {
     } else if (schema) {
         body.schema = schema
     }
-    return createMethodDecorator(null, { body })
+    return createMethodDecorator('body', body)
 }

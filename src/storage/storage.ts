@@ -16,8 +16,8 @@ const storage: Storage = {
     controllers: {}
 }
 
-export const setModel = (modelName: string, propertyKey: PropertyKey, values: any[]) => 
-    set(storage.models, [ modelName, { properties: { key: propertyKey }} ], [ defaults.getModel(), defaults.getProperty(propertyKey), ...values ], { isConcat: true })
+export const setModel = (modelName: string, propertyKey: PropertyKey, values: any[], option?: any) => 
+    set(storage.models, [ modelName, { properties: { key: propertyKey }} ], [ defaults.getModel(), defaults.getProperty(propertyKey), ...values ], option)
 
 export const setRoute = (controllerName: string, routeName: PropertyKey, keys: any[], values: any[], option?: any) => 
     set(storage.controllers, [ controllerName, { routes: { name: routeName }}, ...keys ], [ defaults.getController(), defaults.getRoute(routeName), ...values ], option)

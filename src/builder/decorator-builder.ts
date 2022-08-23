@@ -1,7 +1,9 @@
 import 'reflect-metadata'
 import * as storage from '../storage'
 import { SetOption } from '../util'
-import { PropertyKey } from '../common'
+import { Enum, Schema, PropertyKey, PrimitiveType } from '../common'
+import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
+import _ from 'lodash'
 
 export type ClassDecoratorParams = [
     target: Function
@@ -24,14 +26,80 @@ export type ParameterDecoratorParams = [
     parameterIndex: number
 ]
 
+export interface PropertyOption {
+    name?: string,
+    schema: Schema,
+    description?: string
+    required?: boolean
+    deprecated?: boolean
+    allowEmptyValue?: boolean
+    style?: ParameterStyle
+    explode?: boolean
+    allowReserved?: boolean
+    examples?: Record<string, Example | Reference>
+    example?: any
+    content?: Content
+}
+
+export interface HeaderOption {
+    name: string
+    description?: string
+    required?: boolean
+    deprecated?: boolean
+    allowEmptyValue?: boolean
+    style?: ParameterStyle
+    explode?: boolean
+    allowReserved?: boolean
+    schema: Schema
+    examples?: Record<string, Example | Reference>
+    example?: any
+    content?: Content
+}
+
+export interface ParamOption {
+    name: string
+    schema: Schema
+    description?: string
+    required?: boolean
+    deprecated?: boolean
+    allowEmptyValue?: boolean
+    style?: ParameterStyle
+    explode?: boolean
+    allowReserved?: boolean
+    examples?: Record<string, Example | Reference>
+    example?: any
+    content?: Content
+}
+
+export interface QueryOption {
+    name?: string
+    schema: Schema
+    description?: string
+    required?: boolean
+    deprecated?: boolean
+    allowEmptyValue?: boolean
+    style?: ParameterStyle
+    explode?: boolean
+    allowReserved?: boolean
+    examples?: Record<string, Example | Reference>
+    example?: any
+    content?: Content
+}
+
+export interface BodyOption {
+    schema: Schema
+    description?: string
+    required?: boolean
+}
+
 export const createPropertyDecorator =
-    (value: any): PropertyDecorator => (...[ target, property ]: PropertyDecoratorParams) => {
-        const type = Reflect.getMetadata('design:type', target, property);
-        storage.setModel(target.constructor.name, property, [ { type, ...value} ])
+    (value: PropertyOption): PropertyDecorator => (...[ target, property ]: PropertyDecoratorParams) => {
+        _.defaults(value.schema, { type: Reflect.getMetadata('design:type', target, property) })
+        storage.setModel(target.constructor.name, property, [ value ])
     }
 
 export const createMethodDecorator =
-    (key: any, value: any, option?: SetOption): MethodDecorator => (...[ target, property ]: MethodDecoratorParams) => {
+    (key: any, value: HeaderOption | ParamOption | QueryOption | { body: BodyOption }, option?: SetOption): MethodDecorator => (...[ target, property ]: MethodDecoratorParams) => {
         storage.setRoute(target.constructor.name, property, key ? [ key ]: [], [ value ], option)
     }
 

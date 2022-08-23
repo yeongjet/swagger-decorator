@@ -1,16 +1,22 @@
 import _ from 'lodash'
 import { Parameter } from '../common/open-api'
-import { createMethodDecorator } from '../builder'
+import { ParamOption, createMethodDecorator } from '../builder'
 import { enumToArray } from '../util'
+import { SetOptional } from 'type-fest'
 import { Enum, Schema, PrimitiveType } from '../common'
-import { MergeExclusive3 } from '../common/type-fest'
 
-export type ApiParamOption = Omit<Parameter, 'schema' | 'in'> & 
-    MergeExclusive3<
-        { type?: PrimitiveType, format?: string},
-        { enum?: Enum },
-        { schema?: Schema }
-    >
+// Omit<Parameter, 'schema' | 'in'> & 
+//     MergeExclusive3<
+//         { type?: PrimitiveType, format?: string},
+//         { enum?: Enum },
+//         { schema?: Schema }
+//     >
+
+export interface ApiParamOption extends SetOptional<ParamOption, 'schema'> {
+    type?: PrimitiveType
+    format?: string
+    enum?: Enum
+}
 
 const defaultOption = {
     required: true
