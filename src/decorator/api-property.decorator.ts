@@ -25,11 +25,10 @@ export function ApiProperty(option: ApiPropertyOption = defaultOption): Property
     const { type, enum: enums, isArray, schema, ...apiParam } = { ...defaultOption, ...option }
     const property: PropertyOption = { ...apiParam, schema: { type } as Schema }
     if (type) {
-      property.schema = wrapArray(type, isArray)
+        property.schema = wrapArray(type, isArray)
     } else if (enums) {
-        const array = enumToArray(enums)
-        const type = typeof array.at(0)
-        property.schema =wrapArray(type, isArray, array)
+        const { itemType, array } = enumToArray(enums)
+        property.schema =wrapArray(itemType, isArray, array)
     } else if (schema) {
       property.schema = schema
     }

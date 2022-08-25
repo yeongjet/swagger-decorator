@@ -1,13 +1,15 @@
 import _ from 'lodash'
-import { Enum, Type } from './common'
+import { Enum, Type, Schema } from './common'
+import { primitiveClass, Class, PrimitiveClass } from './common/type-fest'
 
-export const wrapArray = (type: Type, isArray: boolean, array?: any[]) => {
+export const wrapArray = (type: Type, isArray: boolean, array?: any[]): Schema => {
     const items = array ? { type, enum: array } : { type }
     return isArray ? { type: 'array', items } : items
 }
 
-export function enumToArray(enums: Enum): number[] | string[] {
-    return _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil) : _.keys(enums).filter(n => _.isNaN(parseInt(n)))) as any
+export function enumToArray(enums: Enum):{ itemType: 'number' | 'string', array: number[] | string[] } {
+    const array = _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil) : _.keys(enums).filter(n => _.isNaN(parseInt(n)))) as any
+    return { itemType: typeof array.at(0) as 'number' | 'string', array }
 }
 
 export function getSchemaPath(model: string | Function): string {
@@ -26,8 +28,7 @@ export const isContain = (first: object, second: object) => {
 
 export const isValidKey = (name?: string) => _.isString(name) && name.length > 0
 
-export const isPrimitiveType = (type: Type) =>
-    _.isFunction(type) && [String, Boolean, Number].some(n => n === type)
+export const isPrimitiveType = (type: Class): type is PrimitiveClass => _.isFunction(type) && primitiveClass.some(n => n === type)
 
 export const negate = (value: boolean) => !value
 

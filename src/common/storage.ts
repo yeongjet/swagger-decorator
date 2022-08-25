@@ -1,13 +1,11 @@
 import { StatusCodes } from 'http-status-codes'
 import { SetRequired, SetOptional, Class } from 'type-fest'
 import { Operation, RequestBody, Reference } from './open-api'
-import { PrimitiveClass, PrimitiveString } from './type-fest'
+import { Primitive } from './type-fest'
 import { HttpMethod, PropertyKey } from './sundry'
 import * as OpenApi from './open-api'
 
-export type PrimitiveType = PrimitiveClass | PrimitiveString
-
-export type Type = Class<any> | PrimitiveType
+export type Type = Class<any> | Primitive
 
 export type Enum = number[] | string[] | Record<number, string>
 

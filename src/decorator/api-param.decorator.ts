@@ -3,7 +3,8 @@ import { Parameter } from '../common/open-api'
 import { ParamOption, createMethodDecorator } from '../builder'
 import { enumToArray } from '../util'
 import { SetOptional } from 'type-fest'
-import { Enum, Schema, PrimitiveType } from '../common'
+import { Enum, Schema } from '../common'
+import { Primitive } from '../common/type-fest'
 
 // Omit<Parameter, 'schema' | 'in'> & 
 //     MergeExclusive3<
@@ -13,7 +14,7 @@ import { Enum, Schema, PrimitiveType } from '../common'
 //     >
 
 export interface ApiParamOption extends SetOptional<ParamOption, 'schema'> {
-    type?: PrimitiveType
+    type?: Primitive
     format?: string
     enum?: Enum
 }
@@ -29,8 +30,9 @@ export function ApiParam(option: ApiParamOption) {
         param.schema.type = type
         param.schema.format = format
     } else if (enums) {
-        param.schema.enum = enumToArray(enums)
-        param.schema.type = typeof param.schema.enum.at(0)
+        const { itemType, array } = enumToArray(enums)
+        param.schema.enum = array
+        param.schema.type = itemType
     } else if (schema) {
         param.schema = schema
     }

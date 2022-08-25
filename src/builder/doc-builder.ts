@@ -4,45 +4,48 @@ import fs from 'fs'
 import { OpenAPI } from '../common/open-api'
 import { guard, negate, merge, wrapBraceIfParam, isPrimitiveType } from '../util'
 import { Type, ParamType, Storage } from '../common'
+import { Class } from '../common/type-fest'
 
 const openApiVersion = '3.1.0'
 
-type Param = { in: `${ParamType}`, type: Type, name?: string }
+type Param = { in: `${ParamType}`, type: Class, name?: string }
 
 export type BuildDocumentOption = {
     getPrefix?: (controllerName: string) => string
     getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: Param[] }
 }
 
-const mergeParams = (models, methodParams: Param[], { body, params, queries, headers }: Storage.Controller.Route) => {
+const mergeParams = (models, params: Param[], routeStorage: Storage.Controller.Route) => {
     const paramsWithType: any[] = []
     // exclude basic type and @Body('xx')
-    const validMethodParams = methodParams.filter(n => n.type !== Object &&  !(!_.isNil(n.name) && n.in === ParamType.BODY))
+    const validParams = params.filter(n => n.type !== Object &&  !(!_.isNil(n.name) && n.in === ParamType.BODY))
         .map(n => ({ ...n, required: true }))
-    const unnamedMethodParams = _.remove(validMethodParams, n => _.isNil(n.name))
-    paramsWithType.push(...validMethodParams)
-    for (const n of unnamedMethodParams) {
-        const model = models[n.type.constructor.name]
-        paramsWithType.push(...model.properties.map(v => ({ ...v, ..._.omit(n, 'type') })))
+    const [ unnamedParams, namedParams ] = _.partition(validParams, n => _.isNil(n.name))
+    paramsWithType.push(...namedParams)
+    const [ [ unnamedBody ], unnamedExceptBody ] = _.partition(unnamedParams, { in: ParamType.BODY })
+    if (unnamedBody && !routeStorage.body) {
+        // @ts-ignore
+        unnamedBody.name = _.isFunction(unnamedBody.type) ? unnamedBody.type.name : unnamedBody.type
+        paramsWithType.push(unnamedBody)
     }
-    if (!body) {
-        const bodyBinded = _.find(unnamedMethodParams, { in: ParamType.BODY })
-        if (bodyBinded) {
-            // @ts-ignore
-            bodyBinded.name = _.isFunction(bodyBinded.type) ? bodyBinded.type.name : bodyBinded.type
-            paramsWithType.push(bodyBinded)
+    for (const n of unnamedExceptBody) {
+        if (!isPrimitiveType(n.type)) {
+
+            const t = models[n.type.name]
+            paramsWithType.push(...models[n.type.constructor.name].properties.map(v => ({ ...v, ..._.omit(n, 'type') })))
         }
     }
-    for (const [ key, value ] of Object.entries({ [ParamType.PATH]: params, [ParamType.QUERY]: queries, [ParamType.HEADERS]: headers })){
+    const result: any = []
+    for (const [ key, value ] of Object.entries({ [ParamType.PATH]: routeStorage.params, [ParamType.QUERY]: routeStorage.queries, [ParamType.HEADERS]: routeStorage.headers })){
         for (const item of value) {
             if (!_.find(paramsWithType, { name: item.name, in: key })) {
-                const paramBinded = _.find(unnamedMethodParams, { in: key, name: item.name })
-                const paramAssign = paramBinded ? Object.assign(paramBinded, item) : item
-                paramsWithType.push(paramAssign)
+                const target = _.find(paramsWithType, { in: key, name: item.name })
+                const paramAssign = target ? Object.assign(target, item) : item
+                result.push(paramAssign)
             }
         }
     }
-    return paramsWithType
+    return result
 }
 
 export const buildDocument = (option: BuildDocumentOption) => {

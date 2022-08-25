@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 import * as storage from '../storage'
 import { SetOption } from '../util'
-import { Enum, Schema, PropertyKey, PrimitiveType } from '../common'
+import { Schema, PropertyKey } from '../common'
 import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
 import _ from 'lodash'
 

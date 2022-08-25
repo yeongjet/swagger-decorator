@@ -2,10 +2,11 @@ import _ from 'lodash'
 import { SetOptional } from 'type-fest'
 import { HeaderOption, createClassMethodDecorator } from '../builder'
 import { enumToArray } from '../util'
-import { Enum, Schema, PrimitiveType } from '../common'
+import { Enum, Schema } from '../common'
+import { Primitive } from '../common/type-fest'
 
 export interface ApiHeaderOption extends SetOptional<HeaderOption, 'schema'> {
-    type?: PrimitiveType
+    type?: Primitive
     format?: string
     enum?: Enum
 }
@@ -21,8 +22,9 @@ export function ApiHeader(option: ApiHeaderOption) {
         header.schema.type = type
         header.schema.format = format
     } else if (enums) {
-        header.schema.enum = enumToArray(enums)
-        header.schema.type = typeof header.schema.enum.at(0)
+        const { itemType, array } = enumToArray(enums)
+        header.schema.enum = array
+        header.schema.type = itemType
     } else if (schema) {
         header.schema = schema
     }
