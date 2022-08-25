@@ -2,7 +2,7 @@ import _ from 'lodash'
 import * as storage from '../storage'
 import fs from 'fs'
 import { OpenAPI } from '../common/open-api'
-import { guard, negate, merge, wrapBraceIfParam } from '../util'
+import { guard, negate, merge, wrapBraceIfParam, isPrimitiveType } from '../util'
 import { Type, ParamType, Storage } from '../common'
 
 const openApiVersion = '3.1.0'
@@ -14,15 +14,16 @@ export type BuildDocumentOption = {
     getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: Param[] }
 }
 
-const mergeParams = (methodParams: Param[], { body, params, queries, headers }: Storage.Controller.Route) => {
+const mergeParams = (models, methodParams: Param[], { body, params, queries, headers }: Storage.Controller.Route) => {
     const paramsWithType: any[] = []
     // exclude basic type and @Body('xx')
-    const validMethodParams = methodParams.filter(n => n.type !== Object &&  !(_.isNil(n.name) && n.in === ParamType.BODY))
+    const validMethodParams = methodParams.filter(n => n.type !== Object &&  !(!_.isNil(n.name) && n.in === ParamType.BODY))
         .map(n => ({ ...n, required: true }))
     const unnamedMethodParams = _.remove(validMethodParams, n => _.isNil(n.name))
     paramsWithType.push(...validMethodParams)
     for (const n of unnamedMethodParams) {
-        const s = n.type
+        const model = models[n.type.constructor.name]
+        paramsWithType.push(...model.properties.map(v => ({ ...v, ..._.omit(n, 'type') })))
     }
     if (!body) {
         const bodyBinded = _.find(unnamedMethodParams, { in: ParamType.BODY })
@@ -58,10 +59,10 @@ export const buildDocument = (option: BuildDocumentOption) => {
             paths[routePath] = paths[routePath] || {}
             let parameters: any = []
             if (routeBinding.params) {
-                parameters = mergeParams(routeBinding.params, route)
+                parameters = mergeParams(models, routeBinding.params, route)
             }
             const httpMethod = routeBinding.method.toLowerCase()
-            paths[routePath][httpMethod] = { parameters, ...merge(route, global) }
+            paths[routePath][httpMethod] = { parameters }
         }
     }
 

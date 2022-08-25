@@ -13,7 +13,7 @@ const transformParams = (params: Storage.Param[]) => {
         [ParamSource.HEADERS]: 'header'
     }
     // filter @IP @SESSION...
-    return params.map(n => ({ ...n, in: sourceMapping[n.source] })).filter(n => _.negate(_.isNil)(n.in))
+    return params.map(n => ({ ..._.omit(n, 'selectKey', 'source'), name: n.selectKey, in: sourceMapping[n.source] })).filter(n => _.negate(_.isNil)(n.in))
 }
 
 ;(async () => {

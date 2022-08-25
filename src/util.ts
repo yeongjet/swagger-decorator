@@ -26,6 +26,9 @@ export const isContain = (first: object, second: object) => {
 
 export const isValidKey = (name?: string) => _.isString(name) && name.length > 0
 
+export const isPrimitiveType = (type: Type) =>
+    _.isFunction(type) && [String, Boolean, Number].some(n => n === type)
+
 export const negate = (value: boolean) => !value
 
 export const guard = (condition: boolean, message: string) => {

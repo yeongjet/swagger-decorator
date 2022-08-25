@@ -1,10 +1,10 @@
 import _ from 'lodash'
-import { Class } from 'type-fest'
+import { Class, SetOptional } from 'type-fest'
 import { enumToArray, wrapArray } from '../util'
 import { Enum, Schema } from '../common'
 import { BodyOption, createMethodDecorator } from '../builder'
 
-export interface ApiBodyOption extends BodyOption {
+export interface ApiBodyOption extends SetOptional<BodyOption, 'schema'> {
     type?: Class<any>
     enum?: Enum
     isArray?: boolean

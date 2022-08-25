@@ -36,6 +36,19 @@ class Person {
   age: number
 }
 
+class Company {
+  @ApiProperty()
+  address: string
+}
+
+class Home {
+  @ApiProperty()
+  postcode: string
+  @ApiProperty()
+  street: string
+}
+
+
 @ApiBearerAuth()
 @ApiTags('cats')
 @Controller('cats')
@@ -51,7 +64,7 @@ export class CatsController {
   @ApiHeader({ name: 'ddd', enum: Region })
   @ApiQuery({ type: Person })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  async create(@Body() createCatDto, @Param('he') param, @Headers() header, @IP() ip) {
+  async create(@Body() createCatDto: Person, @Param('he') param: Company, @Headers() header: Home, @IP() ip) {
     // return this.catsService.create(createCatDto);
   }
 

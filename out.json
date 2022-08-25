@@ -88,7 +88,6 @@
                     ],
                     "security": [],
                     "body": {
-                        "required": true,
                         "schema": {}
                     },
                     "summary": "summary: 'Create cat'"
