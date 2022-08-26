@@ -7,7 +7,7 @@ export class Array {}
 export const primitiveClass = [ String, Number, Boolean, Object, Array, Integer ] as const
 
 // Ref: https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-00#page-17
-export type PrimitiveClass = typeof primitiveClass[number]
+export type PrimitiveClass = String | Number | Boolean | Object | Array | Integer
 
 export type Class = TypeFest.Class<any> | PrimitiveClass
 

@@ -26,7 +26,7 @@ export const getModel = (): Storage.Model => ({
     properties: []
 })
 
-export const getProperty = (key: PropertyKey): Storage.Model.Property => ({
+export const getProperty = (key: string): Storage.Model.Property => ({
     key,
     schema: {}
 })

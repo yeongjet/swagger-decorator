@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 import * as storage from '../storage'
-import { SetOption } from '../util'
+import { SetOption, guard } from '../util'
 import { Schema, PropertyKey } from '../common'
 import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
 import _ from 'lodash'
@@ -94,8 +94,9 @@ export interface BodyOption {
 
 export const createPropertyDecorator =
     (value: PropertyOption): PropertyDecorator => (...[ target, property ]: PropertyDecoratorParams) => {
+        guard(_.isString(property), `property name must be string`)
         _.defaults(value.schema, { type: Reflect.getMetadata('design:type', target, property) })
-        storage.setModel(target.constructor.name, property, [ value ])
+        storage.setModel(target.constructor.name, property as string, [ value ])
     }
 
 export const createMethodDecorator =

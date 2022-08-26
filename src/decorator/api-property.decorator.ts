@@ -17,8 +17,8 @@ export interface ApiPropertyOption extends SetOptional<PropertyOption, 'schema'>
 }
 
 const defaultOption = {
-  isArray: false,
-  required: true
+    isArray: false,
+    required: true
 }
 
 export function ApiProperty(option: ApiPropertyOption = defaultOption): PropertyDecorator {

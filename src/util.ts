@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { Enum, Type, Schema } from './common'
-import { primitiveClass, Class, PrimitiveClass } from './common/type-fest'
+import { primitiveClass, Class } from './common/type-fest'
+import TypeFest from 'type-fest'
 
 export const wrapArray = (type: Type, isArray: boolean, array?: any[]): Schema => {
     const items = array ? { type, enum: array } : { type }
@@ -28,7 +29,7 @@ export const isContain = (first: object, second: object) => {
 
 export const isValidKey = (name?: string) => _.isString(name) && name.length > 0
 
-export const isPrimitiveType = (type: Class): type is PrimitiveClass => _.isFunction(type) && primitiveClass.some(n => n === type)
+export const isCustomClass = (type: Class): type is TypeFest.Class<any> => !(_.isFunction(type) && primitiveClass.some(n => n === type))
 
 export const negate = (value: boolean) => !value
 

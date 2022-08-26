@@ -1,11 +1,11 @@
 import { StatusCodes } from 'http-status-codes'
-import { SetRequired, SetOptional, Class } from 'type-fest'
+import { SetRequired, SetOptional } from 'type-fest'
 import { Operation, RequestBody, Reference } from './open-api'
-import { Primitive } from './type-fest'
+import { Class, Primitive } from './type-fest'
 import { HttpMethod, PropertyKey } from './sundry'
 import * as OpenApi from './open-api'
 
-export type Type = Class<any> | Primitive
+export type Type = Class | Primitive
 
 export type Enum = number[] | string[] | Record<number, string>
 
@@ -48,7 +48,7 @@ export namespace Storage {
 
     export namespace Model {
         export interface Property {
-            key: PropertyKey
+            key: string
             schema: Schema
         }
     }

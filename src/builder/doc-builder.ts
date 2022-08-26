@@ -2,46 +2,46 @@ import _ from 'lodash'
 import * as storage from '../storage'
 import fs from 'fs'
 import { OpenAPI } from '../common/open-api'
-import { guard, negate, merge, wrapBraceIfParam, isPrimitiveType } from '../util'
-import { Type, ParamType, Storage } from '../common'
+import { guard, negate, merge, wrapBraceIfParam, isCustomClass } from '../util'
+import { Type, ParamType, Storage, Schema } from '../common'
 import { Class } from '../common/type-fest'
+import TypeFest from 'type-fest'
 
 const openApiVersion = '3.1.0'
 
-type Param = { in: `${ParamType}`, type: Class, name?: string }
+type UnnamedParam = { name: undefined, in: `${ParamType}`, type: Class, required: boolean }
+type NamedParam = { name: string, in: `${ParamType}`, type: Class, required: boolean }
+type Param = Omit<NamedParam | UnnamedParam, 'required'>
+type OpenApiParam = { name: string, in: `${ParamType}`, schema: Schema, required: boolean }
 
 export type BuildDocumentOption = {
     getPrefix?: (controllerName: string) => string
     getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: Param[] }
 }
 
-const mergeParams = (models, params: Param[], routeStorage: Storage.Controller.Route) => {
-    const paramsWithType: any[] = []
+const mergeParams = (models: Record<string, Storage.Model>, params: Param[], routeStorage: Storage.Controller.Route) => {
     // exclude basic type and @Body('xx')
     const validParams = params.filter(n => n.type !== Object &&  !(!_.isNil(n.name) && n.in === ParamType.BODY))
-        .map(n => ({ ...n, required: true }))
-    const [ unnamedParams, namedParams ] = _.partition(validParams, n => _.isNil(n.name))
-    paramsWithType.push(...namedParams)
-    const [ [ unnamedBody ], unnamedExceptBody ] = _.partition(unnamedParams, { in: ParamType.BODY })
+        .map(n => ({ ..._.pick(n, 'in', 'type', 'name'), required: true }))
+    const [ unnamedParams, namedParams ]  = _.partition(validParams, n => _.isNil(n.name)) as [ UnnamedParam[], NamedParam[] ]
+    const openApiParams: OpenApiParam[] = namedParams.map(n => ({ ..._.omit(n, 'type'), schema: { type: n.type } }))
+    const [ [ unnamedBody ], unnamedExceptBody ] = _.partition(unnamedParams, { in: ParamType.BODY }) as [ UnnamedParam[], UnnamedParam[] ]
     if (unnamedBody && !routeStorage.body) {
-        // @ts-ignore
-        unnamedBody.name = _.isFunction(unnamedBody.type) ? unnamedBody.type.name : unnamedBody.type
-        paramsWithType.push(unnamedBody)
+        const name = (_.isFunction(unnamedBody.type) ? unnamedBody.type.name : unnamedBody.type) as string
+        openApiParams.push({ ..._.omit(unnamedBody, 'type'), name, schema: { type: unnamedBody.type } })
     }
-    for (const n of unnamedExceptBody) {
-        if (!isPrimitiveType(n.type)) {
-
-            const t = models[n.type.name]
-            paramsWithType.push(...models[n.type.constructor.name].properties.map(v => ({ ...v, ..._.omit(n, 'type') })))
-        }
-    }
-    const result: any = []
+    const namedPrimitiveExceptBody = _.flatMap(unnamedExceptBody.filter(n => isCustomClass(n.type)), n => {
+        const properties = models[(n.type as TypeFest.Class<any>).name]?.properties || []
+        return properties.map(v => ({ name: v.key, in: n.in, schema: v.schema, required: n.required }))
+    })
+    openApiParams.push(...namedPrimitiveExceptBody)
+    const result: OpenApiParam[] = []
     for (const [ key, value ] of Object.entries({ [ParamType.PATH]: routeStorage.params, [ParamType.QUERY]: routeStorage.queries, [ParamType.HEADERS]: routeStorage.headers })){
         for (const item of value) {
-            if (!_.find(paramsWithType, { name: item.name, in: key })) {
-                const target = _.find(paramsWithType, { in: key, name: item.name })
-                const paramAssign = target ? Object.assign(target, item) : item
-                result.push(paramAssign)
+            if (!_.find(openApiParams, { name: item.name, in: key })) {
+                const target = _.find(openApiParams, { in: key, name: item.name })
+                
+                result.push(target ? Object.assign(target, item) : { ...item, in: key })
             }
         }
     }
