@@ -2,46 +2,62 @@ import _ from 'lodash'
 import * as storage from '../storage'
 import fs from 'fs'
 import { OpenAPI } from '../common/open-api'
-import { guard, negate, merge, wrapBraceIfParam, isCustomClass } from '../util'
+import { guard, negate, merge, wrapBraceIfParam, isCustomClass, SetOption } from '../util'
 import { Type, ParamType, Storage, Schema } from '../common'
 import { Class } from '../common/type-fest'
-import TypeFest from 'type-fest'
+import TypeFest, { Merge, SetOptional } from 'type-fest'
 
 const openApiVersion = '3.1.0'
 
-type UnnamedParam = { name: undefined, in: `${ParamType}`, type: Class, required: boolean }
-type NamedParam = { name: string, in: `${ParamType}`, type: Class, required: boolean }
-type Param = Omit<NamedParam | UnnamedParam, 'required'>
+type UnnamedDecoratorParam = { name: undefined, in: `${ParamType}`, type: Class, required: boolean }
+type NamedDecoratorParam = { name: string, in: `${ParamType}`, type: Class, required: boolean }
+type DecoratorParam = Omit<NamedDecoratorParam | UnnamedDecoratorParam, 'required'>
+type UnnamedStorageParam = Merge<Storage.Param, { name: undefined }>
+type NamedStorageParam = Storage.Param
 type OpenApiParam = { name: string, in: `${ParamType}`, schema: Schema, required: boolean }
 
 export type BuildDocumentOption = {
     getPrefix?: (controllerName: string) => string
-    getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: Param[] }
+    getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: DecoratorParam[] }
 }
 
-const mergeParams = (models: Record<string, Storage.Model>, params: Param[], routeStorage: Storage.Controller.Route) => {
+const mergeParams = (models: Record<string, Storage.Model>, decoratorParams: DecoratorParam[], storage: Storage.Controller.Route) => {
     // exclude basic type and @Body('xx')
-    const validParams = params.filter(n => n.type !== Object &&  !(!_.isNil(n.name) && n.in === ParamType.BODY))
-        .map(n => ({ ..._.pick(n, 'in', 'type', 'name'), required: true }))
-    const [ unnamedParams, namedParams ]  = _.partition(validParams, n => _.isNil(n.name)) as [ UnnamedParam[], NamedParam[] ]
-    const openApiParams: OpenApiParam[] = namedParams.map(n => ({ ..._.omit(n, 'type'), schema: { type: n.type } }))
-    const [ [ unnamedBody ], unnamedExceptBody ] = _.partition(unnamedParams, { in: ParamType.BODY }) as [ UnnamedParam[], UnnamedParam[] ]
-    if (unnamedBody && !routeStorage.body) {
-        const name = (_.isFunction(unnamedBody.type) ? unnamedBody.type.name : unnamedBody.type) as string
-        openApiParams.push({ ..._.omit(unnamedBody, 'type'), name, schema: { type: unnamedBody.type } })
+    const validDecoratorParams = decoratorParams.filter(n => n.type !== Object &&  !(!_.isNil(n.name) && n.in === ParamType.BODY))
+        .map(n => ({ ..._.pick(n, 'name', 'in', 'type'), required: true }))
+    const [ unnamedDecoratorParams, namedDecoratorParams ] = _.partition(validDecoratorParams, n => _.isNil(n.name)) as [ UnnamedDecoratorParam[], NamedDecoratorParam[] ]
+    // handle @Header('xx') @Query('xx') @Param('xx')
+    const transformedDecoratorParams: OpenApiParam[] = namedDecoratorParams.map(n => ({ ..._.omit(n, 'type'), schema: { type: n.type } }))
+    const [ [ unnamedDecoratorBody ], unnamedDecoratorQueryHeaderParams ] = _.partition(unnamedDecoratorParams, { in: ParamType.BODY }) as [ UnnamedDecoratorParam[], UnnamedDecoratorParam[] ]
+    // handle @Body()
+    if (unnamedDecoratorBody && !storage.body) {
+        const name = (_.isFunction(unnamedDecoratorBody.type) ? unnamedDecoratorBody.type.name : unnamedDecoratorBody.type) as string
+        transformedDecoratorParams.push({ ..._.omit(unnamedDecoratorBody, 'type'), name, schema: { type: unnamedDecoratorBody.type } })
     }
-    const namedPrimitiveExceptBody = _.flatMap(unnamedExceptBody.filter(n => isCustomClass(n.type)), n => {
-        const properties = models[(n.type as TypeFest.Class<any>).name]?.properties || []
-        return properties.map(v => ({ name: v.key, in: n.in, schema: v.schema, required: n.required }))
+    // handle @Header() @Query() @Param()
+    unnamedDecoratorQueryHeaderParams.map(n => {
+        // ignore Primitive type
+        if (isCustomClass(n.type)) {
+            const properties = models[(n.type as TypeFest.Class<any>).name]?.properties || []
+            transformedDecoratorParams.push(...properties.map(v => ({ name: v.key, in: n.in, schema: v.schema, required: n.required })))
+        }
     })
-    openApiParams.push(...namedPrimitiveExceptBody)
+
+    // all items in transformedDecoratorParams has name so far, merge decoratorParams and storageParams
     const result: OpenApiParam[] = []
-    for (const [ key, value ] of Object.entries({ [ParamType.PATH]: routeStorage.params, [ParamType.QUERY]: routeStorage.queries, [ParamType.HEADERS]: routeStorage.headers })){
+    const [ unnamedStorageQueries, namedStorageQueries ] = _.partition(storage.queries, n => _.isNil(n.name)) as [ UnnamedStorageParam[], NamedStorageParam[] ]
+    const storageParams = { [ParamType.PATH]: storage.params, [ParamType.QUERY]: namedStorageQueries, [ParamType.HEADERS]: storage.headers }
+    for (const [ key, value ] of Object.entries(storageParams) as [`${ParamType}`, NamedStorageParam[]][]){
         for (const item of value) {
-            if (!_.find(openApiParams, { name: item.name, in: key })) {
-                const target = _.find(openApiParams, { in: key, name: item.name })
-                
-                result.push(target ? Object.assign(target, item) : { ...item, in: key })
+            if (_.find(result, { name: item.name, in: key })) {
+                continue
+            }
+            const [ targetDecoratorParam ] = _.remove(transformedDecoratorParams, { name: item.name, in: key })
+            if (targetDecoratorParam) {
+                Object.assign(targetDecoratorParam.schema, item.schema)
+                result.push(targetDecoratorParam)
+            } else {
+                result.push({ ...item, in: key, required: true })
             }
         }
     }

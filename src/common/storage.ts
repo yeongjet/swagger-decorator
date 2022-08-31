@@ -22,10 +22,13 @@ export type Schema = Omit<OpenApi.Schema, 'type' | 'allOf' | 'oneOf' | 'anyOf' |
 }
 
 export namespace Storage {
+
+    export type Param = { name: string, schema: Schema }
+
     export interface Response extends Omit<SetOptional<OpenApi.Response, 'description'>, 'content'> { status: StatusCodes, schema: Schema }
 
     interface CommonOperation extends SetRequired<Pick<Operation, 'tags' | 'summary' | 'description' | 'externalDocs' | 'security'>, 'tags' | 'security'> {
-        headers: { name: string, schema: Schema }[]
+        headers: Param[]
         consumes: string[]
         produces: string[]
         responses: Response[]
@@ -37,8 +40,8 @@ export namespace Storage {
             url?: string
             method?: HttpMethod
             body?: Pick<RequestBody, 'description' | 'required'> & { schema: Schema }
-            params: { name: string, schema: Schema }[]
-            queries: { name?: string, schema: Schema }[]
+            params: Param[]
+            queries: SetOptional<Param, 'name'>[]
         }
     }
 
