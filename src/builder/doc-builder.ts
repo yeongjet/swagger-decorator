@@ -2,7 +2,7 @@ import _ from 'lodash'
 import * as storage from '../storage'
 import fs from 'fs'
 import { OpenAPI } from '../common/open-api'
-import { guard, negate, merge, wrapBraceIfParam, isCustomClass, SetOption } from '../util'
+import { guard, warning, negate, merge, wrapBraceIfParam, isCustomClassType } from '../util'
 import { Type, ParamType, Storage, Schema } from '../common'
 import { Class } from '../common/type-fest'
 import TypeFest, { Merge, SetOptional } from 'type-fest'
@@ -21,6 +21,17 @@ export type BuildDocumentOption = {
     getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: DecoratorParam[] }
 }
 
+const transformSchemaType = (type: any) => {
+    const result: Record<string, any> = {}
+    if (_.isDate(type)) {
+        result.type = 'string'
+        result.format = 'date-time'
+    } else if (type === BigInt) {
+        result.type = 'integer'
+        result.format = 'int64'
+    }
+}
+
 const mergeParams = (models: Record<string, Storage.Model>, decoratorParams: DecoratorParam[], storage: Storage.Controller.Route) => {
     // exclude basic type and @Body('xx')
     const validDecoratorParams = decoratorParams.filter(n => n.type !== Object &&  !(!_.isNil(n.name) && n.in === ParamType.BODY))
@@ -36,29 +47,55 @@ const mergeParams = (models: Record<string, Storage.Model>, decoratorParams: Dec
     }
     // handle @Header() @Query() @Param()
     unnamedDecoratorQueryHeaderParams.map(n => {
-        // ignore Primitive type
-        if (isCustomClass(n.type)) {
+        // ignore primitive type
+        if (isCustomClassType(n.type)) {
             const properties = models[(n.type as TypeFest.Class<any>).name]?.properties || []
-            transformedDecoratorParams.push(...properties.map(v => ({ name: v.key, in: n.in, schema: v.schema, required: n.required })))
+            // ignore custom type nested
+            const [ customClassProperties, primitiveProperties ] = _.partition(properties, v => isCustomClassType(v.schema.type))
+            if (!_.isEmpty(customClassProperties)) {
+                warning(`properties(${customClassProperties.join(',')}) in ${(n.type as TypeFest.Class<any>).name} will be ignored`)
+            }
+            transformedDecoratorParams.push(...primitiveProperties.map(v => ({ name: v.key, in: n.in, schema: v.schema, required: n.required })))
         }
     })
 
     // all items in transformedDecoratorParams has name so far, merge decoratorParams and storageParams
+    // @ApiHeader({ name: 'xx' })
     const result: OpenApiParam[] = []
     const [ unnamedStorageQueries, namedStorageQueries ] = _.partition(storage.queries, n => _.isNil(n.name)) as [ UnnamedStorageParam[], NamedStorageParam[] ]
-    const storageParams = { [ParamType.PATH]: storage.params, [ParamType.QUERY]: namedStorageQueries, [ParamType.HEADERS]: storage.headers }
-    for (const [ key, value ] of Object.entries(storageParams) as [`${ParamType}`, NamedStorageParam[]][]){
-        for (const item of value) {
-            if (_.find(result, { name: item.name, in: key })) {
-                continue
+    const storageParams = {
+        ...storage.params.map(n => ({ ...n, in: ParamType.PATH })),
+        ...namedStorageQueries.map(n => ({ ...n, in: ParamType.QUERY })),
+        ...storage.headers.map(n => ({ ...n, in: ParamType.HEADERS }))
+    }
+    
+    // @ApiHeader name 必须 type 无(always string)
+    // @ApiParam name 必须 type 可选
+    // @ApiQuery name 可选 type 可选
+    // @ApiBody name 无 type 可选
+    // handle @ApiHeader({ name: 'xx' }) @ApiParam({ name: 'xx' }) @ApiQuery({ name: 'xx' })
+    for (const storageParam of storageParams) {
+        if (_.find(result, { name: storageParam.name, in: storageParam.in })) {
+            continue
+        }
+        const [ targetDecoratorParam ] = _.remove(transformedDecoratorParams, { name: storageParam.name, in: storageParam.in })
+        const assignedParam = targetDecoratorParam ? { ...targetDecoratorParam, schema: { ...targetDecoratorParam.schema, ...storageParam.schema } } : { ...storageParam, in: storageParam.in, required: true }
+        const assignedParamType = assignedParam.schema.type
+        if (isCustomClassType(assignedParam.schema.type)) {
+            const properties = models[(assignedParamType as TypeFest.Class<any>).name]?.properties || []
+            for (const property of properties) {
+                if (_.isDate(property.schema.type)) {
+                    property.schema.type = 'string'
+                    property.schema.format = 'date-time'
+                }
             }
-            const [ targetDecoratorParam ] = _.remove(transformedDecoratorParams, { name: item.name, in: key })
-            if (targetDecoratorParam) {
-                Object.assign(targetDecoratorParam.schema, item.schema)
-                result.push(targetDecoratorParam)
-            } else {
-                result.push({ ...item, in: key, required: true })
+            result.push(...properties.map(v => ({ name: v.key, in: key, schema: v.schema, required: v.required })))
+        } else {
+            if (_.isDate(assignedParamType)) {
+                assignedParam.schema.type = 'string'
+                assignedParam.schema.format = 'date-time'
             }
+            result.push(assignedParam)
         }
     }
     return result

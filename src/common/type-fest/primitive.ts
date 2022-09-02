@@ -4,10 +4,10 @@ export class Integer {}
 
 export class Array {}
 
-export const primitiveClass = [ String, Number, Boolean, Object, Array, Integer ] as const
+export const primitiveClass = [ String, Number, Boolean, Object, Date, BigInt, Array, Integer ] as const
 
 // Ref: https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-00#page-17
-export type PrimitiveClass = String | Number | Boolean | Object | Array | Integer
+export type PrimitiveClass = String | Number | Boolean | Object | Date | BigInt | Array | Integer
 
 export type Class = TypeFest.Class<any> | PrimitiveClass
 

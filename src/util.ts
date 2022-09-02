@@ -8,9 +8,10 @@ export const wrapArray = (type: Type, isArray: boolean, array?: any[]): Schema =
     return isArray ? { type: 'array', items } : items
 }
 
-export function enumToArray(enums: Enum):{ itemType: 'number' | 'string', array: number[] | string[] } {
+export function enumToArray(enums: Enum): { itemType: Number | String, array: number[] | string[] } {
     const array = _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil) : _.keys(enums).filter(n => _.isNaN(parseInt(n)))) as any
-    return { itemType: typeof array.at(0) as 'number' | 'string', array }
+    const itemType = { number: Number, string: String }[typeof array.at(0)] || String
+    return { itemType, array }
 }
 
 export function getSchemaPath(model: string | Function): string {
@@ -29,7 +30,7 @@ export const isContain = (first: object, second: object) => {
 
 export const isValidKey = (name?: string) => _.isString(name) && name.length > 0
 
-export const isCustomClass = (type: Class): type is TypeFest.Class<any> => !(_.isFunction(type) && primitiveClass.some(n => n === type))
+export const isCustomClassType = (type: Class): type is TypeFest.Class<any> => !(_.isFunction(type) && primitiveClass.some(n => n === type))
 
 export const negate = (value: boolean) => !value
 
@@ -37,6 +38,10 @@ export const guard = (condition: boolean, message: string) => {
     if (!condition) {
         throw new Error(message)
     }
+}
+
+export const warning = (content: string) => {
+    console.log(`warning: ${content}`)
 }
 
 // merge({ a: [{ b: 2 }] }, { a: [{ c: 3 }] } => { a: [{ b: 2 }, { c: 3 }] }

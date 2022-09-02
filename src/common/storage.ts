@@ -9,8 +9,8 @@ export type Type = Class | Primitive
 
 export type Enum = number[] | string[] | Record<number, string>
 
-export type Schema = Omit<OpenApi.Schema, 'type' | 'allOf' | 'oneOf' | 'anyOf' | 'not' | 'items' | 'properties' | 'additionalProperties' | 'patternProperties' > & {
-    type?: Type
+export type Schema = Omit<OpenApi.Schema, 'type' | 'required' | 'allOf' | 'oneOf' | 'anyOf' | 'not' | 'items' | 'properties' | 'additionalProperties' | 'patternProperties' > & {
+    type: Type
     allOf?: (Schema | Reference)[]
     oneOf?: (Schema | Reference)[]
     anyOf?: (Schema | Reference)[]
@@ -53,6 +53,7 @@ export namespace Storage {
         export interface Property {
             key: string
             schema: Schema
+            required: boolean
         }
     }
 

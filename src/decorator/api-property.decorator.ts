@@ -11,8 +11,8 @@ import { PropertyOption, createPropertyDecorator } from '../builder'
 //   { name: string, schema: Schema })))
 
 export interface ApiPropertyOption extends SetOptional<PropertyOption, 'schema'> {
-    type?: Type,
-    enum?: Enum,
+    type?: Type
+    enum?: Enum
     isArray?: boolean
 }
 
