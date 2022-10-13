@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { Enum, Type, Schema } from './common'
-import { primitiveClass, Class } from './common/type-fest'
+import { primitiveClass, PrimitiveClass } from './common/type-fest'
 import TypeFest from 'type-fest'
 
 export const wrapArray = (type: Type, isArray: boolean, array?: any[]): Schema => {
@@ -30,7 +30,9 @@ export const isContain = (first: object, second: object) => {
 
 export const isValidKey = (name?: string) => _.isString(name) && name.length > 0
 
-export const isCustomClassType = (type: Class): type is TypeFest.Class<any> => !(_.isFunction(type) && primitiveClass.some(n => n === type))
+export const isCustomType = (type: Type): type is TypeFest.Class<any> => !(_.isFunction(type) && primitiveClass.some(n => n === type))
+
+export const isPrimitiveType = (type: Type): type is PrimitiveClass => _.isFunction(type) && primitiveClass.some(n => n === type)
 
 export const negate = (value: boolean) => !value
 
@@ -63,57 +65,34 @@ export const wrapBraceIfParam = (param: string) => {
     return param.indexOf('/:') === 0 ? `/{${param.slice(2)}}` : param
 }
 
-export interface SetOption {
-    isConcat: boolean
-}
-
-const defaultSetOption: SetOption = {
-    isConcat: false
-}
-
-export const set = (target: any, keys: (string | Record<string, any>)[], values: any[], option?: SetOption) => {
-    const { isConcat } = { ...defaultSetOption, ...option }
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i]
-        let parent: any
-        let parentKey
-        guard(_.isString(key) || _.isObject(key), `the key:${key}(${typeof key}) of ${target}(${typeof target}) is invalid`)
-        if (_.isString(key)) {
-            parentKey = key
-            if (_.isUndefined(target[key]) && values[i]) {
-                target[key] = values[i]
-            }
-            parent = target
-            target = target[key]
-        } else if (_.isObject(key)) {
-            const subKey = Object.keys(key).at(0) as string
-            guard(
-                _.isString(subKey) && _.isObject(key[subKey]),
-                `the key:${JSON.stringify(key)} of ${target}(${typeof target}) is invalid`
-            )
-            target = target[subKey]
-            guard(_.isArray(target), `the target:${target} must be array`)
-            let item = target.find(n => isContain(n, key[subKey]))
-            if (_.isUndefined(item) && values[i]) {
-                item = values[i]
-                target.push(item)
-            }
-            parent = target
-            target = item
-        }
-        guard(negate(_.isUndefined(target)), 'target is not found')
-        if (i === keys.length - 1) {
-            if (_.isArray(target)) {
-                if (isConcat) {
-                    target.push(...values[i])
-                } else {
-                    target.push(values[i])
-                }
-            } else if (_.isObject(target)) {
-                Object.assign(target, values[i + 1])
-            } else if(isValidKey(parentKey)) {
-                parent[parentKey] = values[i]
-            }
-        }
-    }
-}
+// export const setWithDefault = (target: Record<string, any>, defaultValue: any, paths: [string, ...(Record<string, any> | string)[]], value: any, option?: SetOption) => {
+//     const { isConcat } = { ...defaultOption, ...option }
+//     let firstKey = paths.shift() as string
+//     guard(_.isString(firstKey) && firstKey.length > 0, `the key "${firstKey}(${typeof firstKey})" must be non-empty string`)
+//     target[firstKey] = target[firstKey] || defaultValue
+//     target = target[firstKey]
+//     let previousTarget
+//     let lastPath = paths.at(-1) as string
+//     for (const path of paths) {
+//         previousTarget = target
+//         if (_.isString(path)) {
+//             console.log(target)
+//             target = target[path]
+//         } else if (_.isObject(path)) {
+//             guard(_.isArray(target), `the target:${JSON.stringify(target)} must be array when key is object`)
+//             target = target.find(n => isContain(n, path))
+//         }
+//     }
+//     if (_.isArray(target)) {
+//         if (isConcat) {
+//             target.push(...value)
+//         } else {
+//             target.push(value)
+//         }
+//     } else if (_.isObject(target)) {
+//         Object.assign(target, value)
+//     } else {
+//         console.log(target)
+//         previousTarget[lastPath] = value
+//     }
+// }

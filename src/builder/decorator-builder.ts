@@ -1,9 +1,11 @@
 import 'reflect-metadata'
-import * as storage from '../storage'
-import { SetOption, guard } from '../util'
-import { Schema, PropertyKey } from '../common'
+import storage from '../storage'
+import { guard } from '../util'
+import { PropertyKey } from '../common'
+import { Schema } from '../common/storage'
 import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
 import _ from 'lodash'
+// import * as defaultValue from './default-value'
 
 export type ClassDecoratorParams = [
     target: Function
@@ -26,11 +28,11 @@ export type ParameterDecoratorParams = [
     parameterIndex: number
 ]
 
-export interface PropertyOption {
-    name?: string,
+export interface OpenApiProperty {
+    name: string,
     schema: Schema,
     description?: string
-    required?: boolean
+    required: boolean
     deprecated?: boolean
     allowEmptyValue?: boolean
     style?: ParameterStyle
@@ -41,7 +43,7 @@ export interface PropertyOption {
     content?: Content
 }
 
-export interface HeaderOption {
+export interface OpenApiHeader {
     name: string
     description?: string
     required?: boolean
@@ -56,7 +58,7 @@ export interface HeaderOption {
     content?: Content
 }
 
-export interface ParamOption {
+export interface OpenApiParam {
     name: string
     schema: Schema
     description?: string
@@ -71,7 +73,7 @@ export interface ParamOption {
     content?: Content
 }
 
-export interface QueryOption {
+export interface OpenApiQuery {
     name?: string
     schema: Schema
     description?: string
@@ -86,28 +88,33 @@ export interface QueryOption {
     content?: Content
 }
 
-export interface BodyOption {
+export interface OpenApiBody {
     schema: Schema
     description?: string
     required?: boolean
 }
 
+export interface CreateDecoratorOption {
+    isConcat: boolean
+}
+
+const defaultOption: CreateDecoratorOption = {
+    isConcat: false
+}
+
 export const createPropertyDecorator =
-    (value: PropertyOption): PropertyDecorator => (...[ target, property ]: PropertyDecoratorParams) => {
+    (value: OpenApiProperty): PropertyDecorator => (...[ target, property ]: PropertyDecoratorParams) => {
         guard(_.isString(property), `property name must be string`)
         _.defaults(value.schema, { type: Reflect.getMetadata('design:type', target, property) })
-        storage.setModel(target.constructor.name, property as string, [ value ])
+        _.merge(storage.models, { [property]: { properties: [ value ] }})
     }
 
 export const createMethodDecorator =
-    (key: any, value: HeaderOption | ParamOption | QueryOption | { body: BodyOption }, option?: SetOption): MethodDecorator => (...[ target, property ]: MethodDecoratorParams) => {
-        storage.setRoute(target.constructor.name, property, key ? [ key ]: [], [ value ], option)
+    (key: any, value: OpenApiHeader | OpenApiParam | OpenApiQuery | { body: OpenApiBody }): MethodDecorator => (...[ target, property ]: MethodDecoratorParams) => {
+        _.merge(storage.controllers, { [target.constructor.name]: { routes: { name: property, [key]: value } } })
     }
 
-export const createClassMethodDecorator = (key: any, value: any, option?: SetOption): ClassDecorator & MethodDecorator => (...[ target, property ]: ClassDecoratorParams | MethodDecoratorParams) => {
-    if (property) {
-        storage.setRoute((target as Object).constructor.name, property, key ? [ key ]: [], [ value ], option)
-    } else {
-        storage.setController((target as Function).name, key ? [ key ]: [], [ value ], option)
+export const createClassMethodDecorator = (key: any, value: any, option?: CreateDecoratorOption): ClassDecorator & MethodDecorator => (...[ target, property ]: ClassDecoratorParams | MethodDecoratorParams) => {
+        const { isConcat } = { ...defaultOption, ...option }
+        _.merge(storage.controllers, { [target.constructor.name]: property ? { routes: { name: property, [key]: value } } : { [key]: isConcat ? [ value ] : value } })
     }
-}

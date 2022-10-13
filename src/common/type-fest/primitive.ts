@@ -15,6 +15,6 @@ export const primitiveString = [ 'string', 'number', 'boolean', 'integer', 'arra
 
 export type PrimitiveString = typeof primitiveString[number]
 
-export type Primitive = PrimitiveClass | PrimitiveString
+export type Primitive = PrimitiveString | PrimitiveClass
 
 export const primitive = [ ...primitiveClass, ...primitiveString ]

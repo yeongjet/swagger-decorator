@@ -1,19 +1,20 @@
 import _ from 'lodash'
-import * as storage from '../storage'
+import storage from '../storage'
 import fs from 'fs'
 import { OpenAPI } from '../common/open-api'
-import { guard, warning, negate, merge, wrapBraceIfParam, isCustomClassType } from '../util'
-import { Type, ParamType, Storage, Schema } from '../common'
-import { Class } from '../common/type-fest'
+import { guard, warning, negate, merge, wrapBraceIfParam, isCustomType, isPrimitiveType } from '../util'
+import { ParamType } from '../common'
+import { Type, Storage, Schema, Param, ControllerRoute } from '../common/storage'
+import { PrimitiveClass } from '../common/type-fest'
 import TypeFest, { Merge, SetOptional } from 'type-fest'
 
 const openApiVersion = '3.1.0'
 
-type UnnamedDecoratorParam = { name: undefined, in: `${ParamType}`, type: Class, required: boolean }
-type NamedDecoratorParam = { name: string, in: `${ParamType}`, type: Class, required: boolean }
+type UnnamedDecoratorParam = { name: undefined, in: `${ParamType}`, type: Type, required: boolean }
+type NamedDecoratorParam = { name: string, in: `${ParamType}`, type: Type, required: boolean }
 type DecoratorParam = Omit<NamedDecoratorParam | UnnamedDecoratorParam, 'required'>
-type UnnamedStorageParam = Merge<Storage.Param, { name: undefined }>
-type NamedStorageParam = Storage.Param
+type UnnamedStorageParam = Merge<Param, { name: undefined }>
+type NamedStorageParam = Param
 type OpenApiParam = { name: string, in: `${ParamType}`, schema: Schema, required: boolean }
 
 export type BuildDocumentOption = {
@@ -21,7 +22,7 @@ export type BuildDocumentOption = {
     getRoute: (controllerName: string, routeName: string) => { method: string, url: string, params?: DecoratorParam[] }
 }
 
-const transformSchemaType = (type: any) => {
+const transformSchemaType = (type: PrimitiveClass) => {
     const result: Record<string, any> = {}
     if (_.isDate(type)) {
         result.type = 'string'
@@ -29,10 +30,14 @@ const transformSchemaType = (type: any) => {
     } else if (type === BigInt) {
         result.type = 'integer'
         result.format = 'int64'
+    } else {
+        const typeName = type.constructor.name
+        result.type = typeName.charAt(0).toLowerCase() + typeName.slice(1)
     }
+    return result
 }
 
-const mergeParams = (models: Record<string, Storage.Model>, decoratorParams: DecoratorParam[], storage: Storage.Controller.Route) => {
+const mergeParams = (models: Storage['models'], decoratorParams: DecoratorParam[], route: ControllerRoute) => {
     // exclude basic type and @Body('xx')
     const validDecoratorParams = decoratorParams.filter(n => n.type !== Object &&  !(!_.isNil(n.name) && n.in === ParamType.BODY))
         .map(n => ({ ..._.pick(n, 'name', 'in', 'type'), required: true }))
@@ -41,21 +46,21 @@ const mergeParams = (models: Record<string, Storage.Model>, decoratorParams: Dec
     const transformedDecoratorParams: OpenApiParam[] = namedDecoratorParams.map(n => ({ ..._.omit(n, 'type'), schema: { type: n.type } }))
     const [ [ unnamedDecoratorBody ], unnamedDecoratorQueryHeaderParams ] = _.partition(unnamedDecoratorParams, { in: ParamType.BODY }) as [ UnnamedDecoratorParam[], UnnamedDecoratorParam[] ]
     // handle @Body()
-    if (unnamedDecoratorBody && !storage.body) {
+    if (unnamedDecoratorBody && !route.body) {
         const name = (_.isFunction(unnamedDecoratorBody.type) ? unnamedDecoratorBody.type.name : unnamedDecoratorBody.type) as string
         transformedDecoratorParams.push({ ..._.omit(unnamedDecoratorBody, 'type'), name, schema: { type: unnamedDecoratorBody.type } })
     }
     // handle @Header() @Query() @Param()
     unnamedDecoratorQueryHeaderParams.map(n => {
         // ignore primitive type
-        if (isCustomClassType(n.type)) {
+        if (isCustomType(n.type)) {
             const properties = models[(n.type as TypeFest.Class<any>).name]?.properties || []
             // ignore custom type nested
-            const [ customClassProperties, primitiveProperties ] = _.partition(properties, v => isCustomClassType(v.schema.type))
+            const [ customClassProperties, primitiveProperties ] = _.partition(properties, v => isCustomType(v.schema.type))
             if (!_.isEmpty(customClassProperties)) {
                 warning(`properties(${customClassProperties.join(',')}) in ${(n.type as TypeFest.Class<any>).name} will be ignored`)
             }
-            transformedDecoratorParams.push(...primitiveProperties.map(v => ({ name: v.key, in: n.in, schema: v.schema, required: n.required })))
+            transformedDecoratorParams.push(...primitiveProperties.map(v => ({ name: v.name, in: n.in, schema: v.schema, required: n.required })))
         }
     })
 
@@ -81,20 +86,18 @@ const mergeParams = (models: Record<string, Storage.Model>, decoratorParams: Dec
         const [ targetDecoratorParam ] = _.remove(transformedDecoratorParams, { name: storageParam.name, in: storageParam.in })
         const assignedParam = targetDecoratorParam ? { ...targetDecoratorParam, schema: { ...targetDecoratorParam.schema, ...storageParam.schema } } : { ...storageParam, in: storageParam.in, required: true }
         const assignedParamType = assignedParam.schema.type
-        if (isCustomClassType(assignedParam.schema.type)) {
+        if (isCustomType(assignedParam.schema.type)) {
             const properties = models[(assignedParamType as TypeFest.Class<any>).name]?.properties || []
             for (const property of properties) {
-                if (_.isDate(property.schema.type)) {
-                    property.schema.type = 'string'
-                    property.schema.format = 'date-time'
+                if (storageParam.in === ParamType.BODY) {
+                    
+                } else {
+                    Object.assign(property, transformSchemaType(property.schema.type))
                 }
             }
-            result.push(...properties.map(v => ({ name: v.key, in: key, schema: v.schema, required: v.required })))
+            result.push(...properties.map(v => ({ name: v.key, in: storageParam.in, schema: v.schema, required: v.required })))
         } else {
-            if (_.isDate(assignedParamType)) {
-                assignedParam.schema.type = 'string'
-                assignedParam.schema.format = 'date-time'
-            }
+            Object.assign(assignedParam, transformSchemaType(assignedParam.schema.type)) 
             result.push(assignedParam)
         }
     }
@@ -104,7 +107,7 @@ const mergeParams = (models: Record<string, Storage.Model>, decoratorParams: Dec
 export const buildDocument = (option: BuildDocumentOption) => {
     const { getPrefix, getRoute } = option
     const paths = {}
-    const { controllers, models } = storage.get()
+    const { controllers, models } = storage
     for (const [ controllerName, controller ] of Object.entries(controllers)) {
         const { routes, ...global } = controller
         const routePathPrefix = getPrefix ? getPrefix(controllerName) : ''
@@ -130,6 +133,6 @@ export const buildDocument = (option: BuildDocumentOption) => {
         },
         paths
     }
-    fs.writeFileSync('out.json', JSON.stringify(storage.get(), null, 4))
+    fs.writeFileSync('out.json', JSON.stringify(storage, null, 4))
     return 
 }

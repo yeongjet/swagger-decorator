@@ -1,12 +1,11 @@
 import _ from 'lodash'
 import { SetOptional } from 'type-fest'
 import { enumToArray, wrapArray } from '../util'
-import { Enum, Schema } from '../common'
-import { BodyOption, createMethodDecorator } from '../builder'
-import { Class } from '../common/type-fest'
+import { Enum, Type } from '../common'
+import { OpenApiBody, createMethodDecorator } from '../builder'
 
-export interface ApiBodyOption extends SetOptional<BodyOption, 'schema'> {
-    type?: Class
+export interface ApiBodyOption extends SetOptional<OpenApiBody, 'schema'> {
+    type?: Type
     enum?: Enum
     isArray?: boolean
 }
@@ -17,7 +16,7 @@ const defaultOption = {
 
 export function ApiBody(option: ApiBodyOption): MethodDecorator {
     const { type, enum: enums, isArray, schema, ...apiParam } = { ...defaultOption, ...option }
-    const body = { ...apiParam, schema: {} }
+    const body = { ...apiParam, schema: { type: Object } } as OpenApiBody
     if (type) {
         body.schema = wrapArray(type, isArray)
     } else if (enums) {

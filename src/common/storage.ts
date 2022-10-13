@@ -1,11 +1,12 @@
 import { StatusCodes } from 'http-status-codes'
 import { SetRequired, SetOptional } from 'type-fest'
 import { Operation, RequestBody, Reference } from './open-api'
-import { Class, Primitive } from './type-fest'
+import { Class } from './type-fest'
 import { HttpMethod, PropertyKey } from './sundry'
 import * as OpenApi from './open-api'
+import { OpenApiProperty } from 'builder'
 
-export type Type = Class | Primitive
+export type Type = Class
 
 export type Enum = number[] | string[] | Record<number, string>
 
@@ -21,48 +22,90 @@ export type Schema = Omit<OpenApi.Schema, 'type' | 'required' | 'allOf' | 'oneOf
     patternProperties?: Schema | Reference | any
 }
 
-export namespace Storage {
+// export namespace Storage {
 
-    export type Param = { name: string, schema: Schema }
+//     export type Param = { name: string, schema: Schema }
 
-    export interface Response extends Omit<SetOptional<OpenApi.Response, 'description'>, 'content'> { status: StatusCodes, schema: Schema }
+//     export interface Response extends Omit<SetOptional<OpenApi.Response, 'description'>, 'content'> { status: StatusCodes, schema: Schema }
 
-    interface CommonOperation extends SetRequired<Pick<Operation, 'tags' | 'summary' | 'description' | 'externalDocs' | 'security'>, 'tags' | 'security'> {
-        headers: Param[]
-        consumes: string[]
-        produces: string[]
-        responses: Response[]
-    }
+//     interface CommonOperation extends SetRequired<Pick<Operation, 'tags' | 'summary' | 'description' | 'externalDocs' | 'security'>, 'tags' | 'security'> {
+//         headers: Param[]
+//         consumes: string[]
+//         produces: string[]
+//         responses: Response[]
+//     }
     
-    export namespace Controller {
-        export interface Route extends CommonOperation {
-            name: PropertyKey
-            url?: string
-            method?: HttpMethod
-            body?: Pick<RequestBody, 'description' | 'required'> & { schema: Schema }
-            params: Param[]
-            queries: SetOptional<Param, 'name'>[]
-        }
-    }
+//     export namespace Controller {
+//         export interface Route extends CommonOperation {
+//             name: PropertyKey
+//             url?: string
+//             method?: HttpMethod
+//             body?: Pick<RequestBody, 'description' | 'required'> & { schema: Schema }
+//             params: Param[]
+//             queries: SetOptional<Param, 'name'>[]
+//         }
+//     }
 
-    export interface Controller extends CommonOperation {
-        routes: Controller.Route[]
-    }
+//     export interface Controller extends CommonOperation {
+//         routes: Controller.Route[]
+//     }
 
-    export namespace Model {
-        export interface Property {
-            key: string
-            schema: Schema
-            required: boolean
-        }
-    }
 
-    export interface Model {
-        properties: Model.Property[]
-    }
+// }
+
+// let storage: Storage = {
+//     models: {
+//         'xxx': {
+//             properties: [
+//                 {
+//                     name: 'abc',
+//                     schema: {
+//                         type: Number
+//                     },
+//                     required: true
+//                 }
+//             ]
+//         }
+//     },
+//     controllers: {
+//         'xxx': {
+//             headers: [],
+//             routes: [{
+//                 name: 'stes',
+//                 params: [],
+//                 body: {}
+//             }]
+//         }
+//     }
+// }
+
+export type Param = { name: string, schema: Schema }
+
+export interface Response extends Omit<SetOptional<OpenApi.Response, 'description'>, 'content'> { status: StatusCodes, schema: Schema }
+
+interface CommonOperation extends SetRequired<Pick<Operation, 'tags' | 'summary' | 'description' | 'externalDocs' | 'security'>, 'tags' | 'security'> {
+    headers: Param[]
+    consumes: string[]
+    produces: string[]
+    responses: Response[]
+}
+
+export interface ControllerRoute extends CommonOperation {
+    name: PropertyKey
+    url?: string
+    method?: HttpMethod
+    body?: Pick<RequestBody, 'description' | 'required'> & { schema: Schema }
+    params: Param[]
+    queries: SetOptional<Param, 'name'>[]
+}
+
+export interface Controller extends CommonOperation {
+    routes: ControllerRoute[]
 }
 
 export type Storage = {
-    models: Record<string, Storage.Model>
-    controllers: Record<string, Storage.Controller>
+    models: Record<string, {
+        properties: OpenApiProperty[]
+    }>
+    controllers: Record<string, Controller>
 }

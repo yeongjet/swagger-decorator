@@ -1,10 +1,9 @@
 import _ from 'lodash'
-import { BaseParameter } from '../common/open-api'
 import { Enum, Schema, Type } from '../common'
 import { SetOptional } from 'type-fest'
 import { enumToArray, wrapArray } from '../util'
 import { QueryOption, createMethodDecorator } from '../builder'
-import { Primitive } from '../common/type-fest'
+
 // MergeExclusive<
 //     { type: Class<any>, isArray?: boolean },
 //     Omit<BaseParameter, 'schema'> & MergeExclusive3<
@@ -27,7 +26,7 @@ const defaultOption = {
 
 export function ApiQuery(option: ApiQueryOption): MethodDecorator {
     const { type, enum: enums, isArray, schema, ...apiParam } = { ...defaultOption, ...option }
-    const query = { ...apiParam, schema: { type: 'string' } as Schema }
+    const query = { ...apiParam, schema: { type: String } as Schema }
     if (type) {
         query.schema = wrapArray(type, isArray)
     } else if (enums) {
