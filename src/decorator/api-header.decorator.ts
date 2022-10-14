@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { SetOptional } from 'type-fest'
 import { OpenApiHeader, createClassMethodDecorator } from '../builder'
 import { enumToArray } from '../util'
-import { Enum, Schema, Type } from '../common'
+import { Enum, Schema, Type } from '../storage'
 
 export interface ApiHeaderOption extends SetOptional<OpenApiHeader, 'schema'> {
     type?: Type
@@ -16,16 +16,16 @@ const defaultOption = {
 
 export function ApiHeader(option: ApiHeaderOption) {
     const { type, format, enum: enums, schema, ...apiParam } = { ...defaultOption, ...option }
-    const header = { ...apiParam, schema: { type: String } as Schema }
+    const headers = { ...apiParam, schema: { type: String } as Schema }
     if (type) {
-        header.schema.type = type
-        header.schema.format = format
+        headers.schema.type = type
+        headers.schema.format = format
     } else if (enums) {
         const { itemType, array } = enumToArray(enums)
-        header.schema.enum = array
-        header.schema.type = itemType
+        headers.schema.enum = array
+        headers.schema.type = itemType
     } else if (schema) {
-        header.schema = schema
+        headers.schema = schema
     }
-    return createClassMethodDecorator('headers', header)
+    return createClassMethodDecorator({ headers: [ headers ] })
 }

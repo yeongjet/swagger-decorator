@@ -1,16 +1,10 @@
 
-import { Enum, Schema, Type } from '../common'
+import { Enum, Schema, Type } from '../storage'
 import { enumToArray, wrapArray } from '../util'
 import { SetOptional } from 'type-fest'
 import { OpenApiProperty, createPropertyDecorator } from '../builder'
 
-// { required?: boolean } & ({ type: Class<any>, isArray?: boolean } | 
-//   (Omit<BaseParameter, 'schema'> & (
-//     { name: string, type: PrimitiveClass | PrimitiveString, isArray?: boolean } |
-//   { name: string, enum: Enum, isArray?: boolean } |
-//   { name: string, schema: Schema })))
-
-export interface ApiPropertyOption extends SetOptional<OpenApiProperty, 'schema'> {
+export interface ApiPropertyOption extends SetOptional<OpenApiProperty, 'schema' | 'name'> {
     type?: Type
     enum?: Enum
     isArray?: boolean
@@ -21,7 +15,7 @@ const defaultOption = {
     required: true
 }
 
-export function ApiProperty(option: ApiPropertyOption): PropertyDecorator {
+export function ApiProperty(option: ApiPropertyOption = {}): PropertyDecorator {
     const { type, enum: enums, isArray, schema, ...apiParam } = { ...defaultOption, ...option }
     const property = { ...apiParam, schema: { type } as Schema }
     if (type) {

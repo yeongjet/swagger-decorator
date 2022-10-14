@@ -1,7 +1,6 @@
 import { Controller, Get, Post } from 'routing-decorator'
 import {
   ApiBearerAuth,
-  ApiOperation,
   ApiResponse,
   ApiOkResponse,
   ApiTags,
@@ -58,13 +57,13 @@ export class CatsController {
   // constructor(private readonly catsService: CatsService) {}
 
   @Post('sd')
-  @ApiOperation({ summary: "summary: 'Create cat'" })
+  //@ApiOperation({ summary: "summary: 'Create cat'" })
   @ApiBody({ type: CreateCatDto })
   @ApiParam({ name: 'hello' })
   @ApiHeader({ name: 'ddd', enum: Region })
   @ApiQuery({ type: Person })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  async create(@Body() createCatDto: Person, @Param('he') param: Company, @Headers() header: Home, @IP() ip) {
+  async create(@Body() createCatDto: Person, @Body() createCompanyDto: Company, @Param('he') param: Company, @Headers() header: Home, @IP() ip) {
     // return this.catsService.create(createCatDto);
   }
 

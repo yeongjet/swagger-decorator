@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { Enum, Type, Schema } from './common'
+import { Enum, Type, Schema } from './storage'
 import { primitiveClass, PrimitiveClass } from './common/type-fest'
 import TypeFest from 'type-fest'
 
@@ -30,7 +30,7 @@ export const isContain = (first: object, second: object) => {
 
 export const isValidKey = (name?: string) => _.isString(name) && name.length > 0
 
-export const isCustomType = (type: Type): type is TypeFest.Class<any> => !(_.isFunction(type) && primitiveClass.some(n => n === type))
+//export const isNotPrimitiveType = (type: Type): type is TypeFest.Class<any> => !(_.isFunction(type) && primitiveClass.some(n => n === type))
 
 export const isPrimitiveType = (type: Type): type is PrimitiveClass => _.isFunction(type) && primitiveClass.some(n => n === type)
 
@@ -46,53 +46,22 @@ export const warning = (content: string) => {
     console.log(`warning: ${content}`)
 }
 
-// merge({ a: [{ b: 2 }] }, { a: [{ c: 3 }] } => { a: [{ b: 2 }, { c: 3 }] }
-export const merge = (first: object, second: object) => {
-    const result = {}
-    _.map(first, (value, key) => {
-        if (_.isArray(value) && _.isArray(second[key])) {
-            result[key] = [ ...value as any[], ...second[key] ]
-        } else if (_.isObject(value) && _.isObject(second[key])){
-            result[key] = { ...value as object, ...second[key] }
-        } else {
-            result[key] = value
+export const merge = (n: object, v: object, arrayMergeKeys: string[]) => {
+    let arrayStack = 0
+    _.mergeWith(n, v, (c, r, stack) => {
+        if(!_.isArray(c)) {
+            return
         }
+        let mergeKey = arrayMergeKeys[arrayStack]
+        arrayStack++
+        const t = _.find(c, { [mergeKey]: r.at(0)[mergeKey] })
+        if (t) {
+            return
+        }
+        return c.concat(r);
     })
-    return result
 }
 
 export const wrapBraceIfParam = (param: string) => {
     return param.indexOf('/:') === 0 ? `/{${param.slice(2)}}` : param
 }
-
-// export const setWithDefault = (target: Record<string, any>, defaultValue: any, paths: [string, ...(Record<string, any> | string)[]], value: any, option?: SetOption) => {
-//     const { isConcat } = { ...defaultOption, ...option }
-//     let firstKey = paths.shift() as string
-//     guard(_.isString(firstKey) && firstKey.length > 0, `the key "${firstKey}(${typeof firstKey})" must be non-empty string`)
-//     target[firstKey] = target[firstKey] || defaultValue
-//     target = target[firstKey]
-//     let previousTarget
-//     let lastPath = paths.at(-1) as string
-//     for (const path of paths) {
-//         previousTarget = target
-//         if (_.isString(path)) {
-//             console.log(target)
-//             target = target[path]
-//         } else if (_.isObject(path)) {
-//             guard(_.isArray(target), `the target:${JSON.stringify(target)} must be array when key is object`)
-//             target = target.find(n => isContain(n, path))
-//         }
-//     }
-//     if (_.isArray(target)) {
-//         if (isConcat) {
-//             target.push(...value)
-//         } else {
-//             target.push(value)
-//         }
-//     } else if (_.isObject(target)) {
-//         Object.assign(target, value)
-//     } else {
-//         console.log(target)
-//         previousTarget[lastPath] = value
-//     }
-// }

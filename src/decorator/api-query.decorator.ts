@@ -1,8 +1,8 @@
 import _ from 'lodash'
-import { Enum, Schema, Type } from '../common'
+import { Enum, Schema, Type } from '../storage'
 import { SetOptional } from 'type-fest'
 import { enumToArray, wrapArray } from '../util'
-import { QueryOption, createMethodDecorator } from '../builder'
+import { OpenApiQuery, createMethodDecorator } from '../builder'
 
 // MergeExclusive<
 //     { type: Class<any>, isArray?: boolean },
@@ -13,7 +13,7 @@ import { QueryOption, createMethodDecorator } from '../builder'
 //     >
 // >
 
-export interface ApiQueryOption extends SetOptional<QueryOption, 'schema'> {
+export interface ApiQueryOption extends SetOptional<OpenApiQuery, 'schema'> {
     type?: Type
     enum?: Enum,
     isArray?: boolean
@@ -35,5 +35,5 @@ export function ApiQuery(option: ApiQueryOption): MethodDecorator {
     } else if (schema) {
         query.schema = schema
     }
-    return createMethodDecorator('queries', query)
+    return createMethodDecorator({ queries: [ query ] })
 }

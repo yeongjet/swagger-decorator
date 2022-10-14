@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { SetOptional } from 'type-fest'
 import { enumToArray, wrapArray } from '../util'
-import { Enum, Type } from '../common'
+import { Enum, Type } from '../storage'
 import { OpenApiBody, createMethodDecorator } from '../builder'
 
 export interface ApiBodyOption extends SetOptional<OpenApiBody, 'schema'> {
@@ -25,5 +25,5 @@ export function ApiBody(option: ApiBodyOption): MethodDecorator {
     } else if (schema) {
         body.schema = schema
     }
-    return createMethodDecorator('body', body)
+    return createMethodDecorator({ body })
 }

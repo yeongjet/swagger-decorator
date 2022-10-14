@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { OpenApiParam, createMethodDecorator } from '../builder'
 import { enumToArray } from '../util'
 import { SetOptional } from 'type-fest'
-import { Enum, Schema, Type } from '../common'
+import { Enum, Schema, Type } from '../storage'
 
 export interface ApiParamOption extends SetOptional<OpenApiParam, 'schema'> {
     type?: Type
@@ -27,5 +27,5 @@ export function ApiParam(option: ApiParamOption) {
     } else if (schema) {
         param.schema = schema
     }
-    return createMethodDecorator('params', param)
+    return createMethodDecorator({ params: [ param ] })
 }
