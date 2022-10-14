@@ -58,7 +58,7 @@ export interface OpenApiHeader {
 }
 
 export interface OpenApiParam {
-    name?: string
+    name: string
     schema: Schema
     description?: string
     required?: boolean

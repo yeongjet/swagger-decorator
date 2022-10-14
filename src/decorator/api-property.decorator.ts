@@ -22,7 +22,7 @@ export function ApiProperty(option: ApiPropertyOption = {}): PropertyDecorator {
         property.schema = wrapArray(type, isArray)
     } else if (enums) {
         const { itemType, array } = enumToArray(enums)
-        property.schema =wrapArray(itemType, isArray, array)
+        property.schema = wrapArray(itemType, isArray, array)
     } else if (schema) {
       property.schema = schema
     }

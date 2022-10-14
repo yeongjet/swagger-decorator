@@ -87,7 +87,7 @@ const mergeParams = (models: Storage['models'], routeParamsMetadata: RouteParams
         const [ targetDecoratorParam ] = _.remove(namedMetadataWithSchema, { name: storageParam.name, in: storageParam.in })
         const assignedParam = targetDecoratorParam ? { ...targetDecoratorParam, schema: { ...targetDecoratorParam.schema, ...storageParam.schema } } : { ...storageParam, in: storageParam.in, required: true }
         const assignedParamType = assignedParam.schema.type
-        if (isCustomType(assignedParam.schema.type)) {
+        if (!isPrimitiveType(assignedParam.schema.type)) {
             const properties = models[(assignedParamType as TypeFest.Class<any>).name]?.properties || []
             for (const property of properties) {
                 if (storageParam.in === ParamType.BODY) {
