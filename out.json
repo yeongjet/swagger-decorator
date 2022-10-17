@@ -1,0 +1,121 @@
+{
+    "models": {
+        "Person": {
+            "properties": [
+                {
+                    "name": "name",
+                    "required": true,
+                    "schema": {}
+                },
+                {
+                    "name": "age",
+                    "required": true,
+                    "schema": {}
+                }
+            ]
+        },
+        "Company": {
+            "properties": [
+                {
+                    "name": "address",
+                    "required": true,
+                    "schema": {}
+                }
+            ]
+        },
+        "Home": {
+            "properties": [
+                {
+                    "name": "postcode",
+                    "required": true,
+                    "schema": {}
+                },
+                {
+                    "name": "street",
+                    "required": true,
+                    "schema": {}
+                }
+            ]
+        }
+    },
+    "controllers": {
+        "CatsController": {
+            "routes": [
+                {
+                    "name": "create",
+                    "responses": {
+                        "status": 403,
+                        "description": "Forbidden.",
+                        "schema": {}
+                    },
+                    "queries": [
+                        {
+                            "required": true,
+                            "schema": {}
+                        }
+                    ],
+                    "headers": [
+                        {
+                            "required": true,
+                            "name": "ddd",
+                            "schema": {
+                                "enum": [
+                                    "Country",
+                                    "Province",
+                                    "User"
+                                ]
+                            }
+                        }
+                    ],
+                    "params": [
+                        {
+                            "required": true,
+                            "name": "hello",
+                            "schema": {}
+                        }
+                    ],
+                    "body": {
+                        "required": true,
+                        "schema": {}
+                    }
+                },
+                {
+                    "name": "findOne",
+                    "responses": {
+                        "status": 200,
+                        "description": "The found record",
+                        "schema": {
+                            "type": [
+                                null
+                            ]
+                        }
+                    }
+                }
+            ],
+            "consumes": [
+                [
+                    "ddd/x-www-form-urlencoded"
+                ]
+            ],
+            "headers": [
+                {
+                    "required": true,
+                    "name": "kkk",
+                    "schema": {
+                        "enum": [
+                            "Admin",
+                            "Moderator",
+                            "User"
+                        ]
+                    }
+                }
+            ],
+            "tags": [
+                "cats"
+            ],
+            "security": {
+                "bearer": []
+            }
+        }
+    }
+}

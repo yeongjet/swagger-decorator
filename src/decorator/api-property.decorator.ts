@@ -1,30 +1,40 @@
 
-import { Enum, Schema, Type } from '../storage'
+import { Enum, Type } from '../storage'
 import { enumToArray, wrapArray } from '../util'
-import { SetOptional } from 'type-fest'
-import { OpenApiProperty, createPropertyDecorator } from '../builder'
+import { createPropertyDecorator } from '../builder'
+import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
+import { SetRequired } from 'type-fest'
 
-export interface ApiPropertyOption extends SetOptional<OpenApiProperty, 'schema' | 'name'> {
+export interface ApiPropertyOption {
     type?: Type
     enum?: Enum
     isArray?: boolean
+    name?: string
+    description?: string
+    required?: boolean
+    deprecated?: boolean
+    allowEmptyValue?: boolean
+    style?: ParameterStyle
+    explode?: boolean
+    allowReserved?: boolean
+    examples?: Record<string, Example | Reference>
+    example?: any
+    content?: Content
 }
 
-const defaultOption = {
+const defaultOption: SetRequired<ApiPropertyOption, 'isArray'> = {
     isArray: false,
     required: true
 }
 
 export function ApiProperty(option: ApiPropertyOption = {}): PropertyDecorator {
-    const { type, enum: enums, isArray, schema, ...apiParam } = { ...defaultOption, ...option }
-    const property = { ...apiParam, schema: { type } as Schema }
+    const { type, enum: enums, isArray, ...processless } = { ...defaultOption, ...option }
+    let schema = {}
     if (type) {
-        property.schema = wrapArray(type, isArray)
+        schema = wrapArray(type, isArray)
     } else if (enums) {
-        const { itemType, array } = enumToArray(enums)
-        property.schema = wrapArray(itemType, isArray, array)
-    } else if (schema) {
-      property.schema = schema
+        const { itemType, items } = enumToArray(enums)
+        schema = wrapArray(itemType, isArray, items)
     }
-    return createPropertyDecorator(property)
+    return createPropertyDecorator({ ...processless, schema })
 }

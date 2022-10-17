@@ -1,29 +1,30 @@
 import _ from 'lodash'
-import { SetOptional } from 'type-fest'
 import { enumToArray, wrapArray } from '../util'
-import { Enum, Type } from '../storage'
-import { OpenApiBody, createMethodDecorator } from '../builder'
+import { createMethodDecorator } from '../builder'
+import { Type, Enum } from '../storage'
+import { SetRequired } from 'type-fest'
 
-export interface ApiBodyOption extends SetOptional<OpenApiBody, 'schema'> {
+export interface ApiBodyOption {
     type?: Type
     enum?: Enum
     isArray?: boolean
+    description?: string
+    required?: boolean
 }
 
-const defaultOption = {
-    isArray: false
+const defaultOption: SetRequired<ApiBodyOption, 'isArray'> = {
+    isArray: false,
+    required: true
 }
 
 export function ApiBody(option: ApiBodyOption): MethodDecorator {
-    const { type, enum: enums, isArray, schema, ...apiParam } = { ...defaultOption, ...option }
-    const body = { ...apiParam, schema: { type: Object } } as OpenApiBody
+    const { type, enum: enums, isArray, ...processless } = { ...defaultOption, ...option }
+    let schema = {}
     if (type) {
-        body.schema = wrapArray(type, isArray)
+        schema = wrapArray(type, isArray)
     } else if (enums) {
-        const { itemType, array } = enumToArray(enums)
-        body.schema = wrapArray(itemType, isArray, array)
-    } else if (schema) {
-        body.schema = schema
+        const { itemType, items } = enumToArray(enums)
+        schema = wrapArray(itemType, isArray, items)
     }
-    return createMethodDecorator({ body })
+    return createMethodDecorator({ body: { ...processless, schema } })
 }

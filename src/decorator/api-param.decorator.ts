@@ -1,31 +1,38 @@
 import _ from 'lodash'
-import { OpenApiParam, createMethodDecorator } from '../builder'
+import { createMethodDecorator } from '../builder'
 import { enumToArray } from '../util'
-import { SetOptional } from 'type-fest'
-import { Enum, Schema, Type } from '../storage'
+import { Enum, Type } from '../storage'
+import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
 
-export interface ApiParamOption extends SetOptional<OpenApiParam, 'schema'> {
+export interface ApiParamOption {
     type?: Type
     format?: string
     enum?: Enum
+    name: string
+    description?: string
+    required?: boolean
+    deprecated?: boolean
+    allowEmptyValue?: boolean
+    style?: ParameterStyle
+    explode?: boolean
+    allowReserved?: boolean
+    examples?: Record<string, Example | Reference>
+    example?: any
+    content?: Content
 }
 
-const defaultOption = {
+const defaultOption: Partial<ApiParamOption> = {
     required: true
 }
 
 export function ApiParam(option: ApiParamOption) {
-    const { type, format, enum: enums, schema, ...apiParam } = { ...defaultOption, ...option }
-    const param = { ...apiParam, schema: { type: String } as Schema }
+    const { type, format, enum: enums, ...processless } = { ...defaultOption, ...option }
+    let schema = { type: String } as object
     if (type) {
-        param.schema.type = type
-        param.schema.format = format
+        schema = { type, format }
     } else if (enums) {
-        const { itemType, array } = enumToArray(enums)
-        param.schema.enum = array
-        param.schema.type = itemType
-    } else if (schema) {
-        param.schema = schema
+        const { itemType, items } = enumToArray(enums)
+        schema = { type: itemType, enum: items }
     }
-    return createMethodDecorator({ params: [ param ] })
+    return createMethodDecorator({ params: [ { ...processless, schema } ] })
 }

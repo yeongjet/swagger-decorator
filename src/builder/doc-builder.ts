@@ -4,7 +4,7 @@ import fs from 'fs'
 import { OpenAPI } from '../common/open-api'
 import { guard, warning, negate, merge, wrapBraceIfParam, isPrimitiveType } from '../util'
 import { ParamType } from '../common'
-import { Type, Storage, Schema, Param, ControllerRoute } from '../storage'
+import { Type, Storage, Schema, Parameter, ControllerRoute } from '../storage'
 import { PrimitiveClass } from '../common/type-fest'
 import TypeFest, { Merge, SetOptional } from 'type-fest'
 
@@ -13,8 +13,8 @@ const openApiVersion = '3.1.0'
 type UnnamedDecoratorParam = { name: undefined, in: `${ParamType}`, type: Type, required: boolean }
 type NamedDecoratorParam = { name: string, in: `${ParamType}`, type: Type, required: boolean }
 type RouteParamsMetadata = Omit<NamedDecoratorParam | UnnamedDecoratorParam, 'required'>
-type UnnamedStorageParam = Merge<Param, { name: undefined }>
-type NamedStorageParam = Param
+type UnnamedStorageParam = Omit<Parameter, 'name'>
+type NamedStorageParam = Parameter
 type OpenApiParam = { name: string, in: `${ParamType}`, schema: Schema, required: boolean }
 
 export type BuildDocumentOption = {
@@ -31,7 +31,7 @@ const transformSchemaType = (type: PrimitiveClass) => {
         result.type = 'integer'
         result.format = 'int64'
     } else {
-        const typeName = type.constructor.name
+        const typeName = (type as Function).name
         result.type = typeName.charAt(0).toLowerCase() + typeName.slice(1)
     }
     return result
@@ -65,41 +65,46 @@ const mergeParams = (models: Storage['models'], routeParamsMetadata: RouteParams
         }
     })
 
-    // all items in transformedDecoratorParams has name so far, merge decoratorParams and storageParams
-    // @ApiHeader({ name: 'xx' })
+    // all items in namedMetadataWithSchema has name, merge paramsMetadata and storageParams
     const result: OpenApiParam[] = []
-    const [ unnamedStorageQueries, namedStorageQueries ] = _.partition(routeStorage.queries, n => _.isNil(n.name)) as [ UnnamedStorageParam[], NamedStorageParam[] ]
-    const storageParams = {
-        ...routeStorage.params.map(n => ({ ...n, in: ParamType.PATH })),
-        ...namedStorageQueries.map(n => ({ ...n, in: ParamType.QUERY })),
-        ...routeStorage.headers.map(n => ({ ...n, in: ParamType.HEADERS }))
-    }
+    const [ unnamedQueriesInRouteStorage, namedQueriesInRouteStorage ] = _.partition((routeStorage.queries || []), n => _.isNil(n.name)) as [ UnnamedStorageParam[], NamedStorageParam[] ]
+    const parametersInRouteStorage = [
+        ...(routeStorage.params || []).map(n => ({ ...n, in: ParamType.PATH })),
+        ...namedQueriesInRouteStorage.map(n => ({ ...n, in: ParamType.QUERY })),
+        ...(routeStorage.headers || []).map(n => ({ ...n, in: ParamType.HEADERS }))
+    ]
     
     // @ApiHeader name 必须 type 无(always string)
     // @ApiParam name 必须 type 可选
     // @ApiQuery name 可选 type 可选
     // @ApiBody name 无 type 可选
     // handle @ApiHeader({ name: 'xx' }) @ApiParam({ name: 'xx' }) @ApiQuery({ name: 'xx' })
-    for (const storageParam of storageParams) {
-        if (_.find(result, { name: storageParam.name, in: storageParam.in })) {
+    for (const parameterInRouteStorage of parametersInRouteStorage) {
+        if (_.find(result, { name: parameterInRouteStorage.name, in: parameterInRouteStorage.in })) {
             continue
         }
-        const [ targetDecoratorParam ] = _.remove(namedMetadataWithSchema, { name: storageParam.name, in: storageParam.in })
-        const assignedParam = targetDecoratorParam ? { ...targetDecoratorParam, schema: { ...targetDecoratorParam.schema, ...storageParam.schema } } : { ...storageParam, in: storageParam.in, required: true }
-        const assignedParamType = assignedParam.schema.type
-        if (!isPrimitiveType(assignedParam.schema.type)) {
-            const properties = models[(assignedParamType as TypeFest.Class<any>).name]?.properties || []
-            for (const property of properties) {
-                if (storageParam.in === ParamType.BODY) {
+        const [ targetParamMetadata ] = _.remove(namedMetadataWithSchema, { name: parameterInRouteStorage.name, in: parameterInRouteStorage.in })
+        let assignedParam = {} as any
+        if (targetParamMetadata) {
+            Object.assign(targetParamMetadata.schema, parameterInRouteStorage.schema)
+            assignedParam = targetParamMetadata
+        } else {
+            assignedParam = { ...parameterInRouteStorage, in: parameterInRouteStorage.in, required: true }
+        }
+        const assignedSchemaType = assignedParam.schema.type
+        if (isPrimitiveType(assignedSchemaType)) {
+            Object.assign(assignedParam, transformSchemaType(assignedSchemaType))
+            result.push(assignedParam)
+        } else {
+            const modelProperties = models[(assignedSchemaType as TypeFest.Class<any>).name]?.properties || []
+            for (const property of modelProperties) {
+                if (parameterInRouteStorage.in === ParamType.BODY) {
                     
                 } else {
                     Object.assign(property, transformSchemaType(property.schema.type))
                 }
             }
-            result.push(...properties.map(v => ({ name: v.name, in: storageParam.in, schema: v.schema, required: v.required })))
-        } else {
-            Object.assign(assignedParam, transformSchemaType(assignedParam.schema.type)) 
-            result.push(assignedParam)
+            result.push(...modelProperties.map(v => ({ name: v.name, in: parameterInRouteStorage.in, schema: v.schema, required: v.required })))
         }
     }
     return result

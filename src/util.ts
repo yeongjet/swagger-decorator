@@ -1,17 +1,16 @@
 import _ from 'lodash'
 import { Enum, Type, Schema } from './storage'
 import { primitiveClass, PrimitiveClass } from './common/type-fest'
-import TypeFest from 'type-fest'
 
 export const wrapArray = (type: Type, isArray: boolean, array?: any[]): Schema => {
     const items = array ? { type, enum: array } : { type }
     return isArray ? { type: 'array', items } : items
 }
 
-export function enumToArray(enums: Enum): { itemType: Number | String, array: number[] | string[] } {
-    const array = _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil) : _.keys(enums).filter(n => _.isNaN(parseInt(n)))) as any
-    const itemType = { number: Number, string: String }[typeof array.at(0)] || String
-    return { itemType, array }
+export function enumToArray(enums: Enum): { itemType: Number | String, items: number[] | string[] } {
+    const items = _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil) : _.keys(enums).filter(n => _.isNaN(parseInt(n)))) as any
+    const itemType = { number: Number, string: String }[typeof items.at(0)] || String
+    return { itemType, items }
 }
 
 export function getSchemaPath(model: string | Function): string {

@@ -1,39 +1,40 @@
 import _ from 'lodash'
 import { Enum, Schema, Type } from '../storage'
-import { SetOptional } from 'type-fest'
 import { enumToArray, wrapArray } from '../util'
-import { OpenApiQuery, createMethodDecorator } from '../builder'
+import { createMethodDecorator } from '../builder'
+import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
+import { SetRequired } from 'type-fest'
 
-// MergeExclusive<
-//     { type: Class<any>, isArray?: boolean },
-//     Omit<BaseParameter, 'schema'> & MergeExclusive3<
-//         { name: string, type: PrimitiveClass | PrimitiveString, isArray?: boolean },
-//         { name: string, enum: Enum, isArray?: boolean },
-//         { name: string, schema: Schema }
-//     >
-// >
-
-export interface ApiQueryOption extends SetOptional<OpenApiQuery, 'schema'> {
+export interface ApiQueryOption {
     type?: Type
     enum?: Enum,
     isArray?: boolean
+    name?: string
+    description?: string
+    required?: boolean
+    deprecated?: boolean
+    allowEmptyValue?: boolean
+    style?: ParameterStyle
+    explode?: boolean
+    allowReserved?: boolean
+    examples?: Record<string, Example | Reference>
+    example?: any
+    content?: Content
 }
 
-const defaultOption = {
+const defaultOption: SetRequired<ApiQueryOption, 'isArray'> = {
     isArray: false,
     required: true
 }
 
 export function ApiQuery(option: ApiQueryOption): MethodDecorator {
-    const { type, enum: enums, isArray, schema, ...apiParam } = { ...defaultOption, ...option }
-    const query = { ...apiParam, schema: { type: String } as Schema }
+    const { type, enum: enums, isArray, ...processless } = { ...defaultOption, ...option }
+    let schema = {}
     if (type) {
-        query.schema = wrapArray(type, isArray)
+        schema = wrapArray(type, isArray)
     } else if (enums) {
-        const { itemType, array } = enumToArray(enums)
-        query.schema =wrapArray(itemType, isArray, array)
-    } else if (schema) {
-        query.schema = schema
+        const { itemType, items } = enumToArray(enums)
+        schema = wrapArray(itemType, isArray, items)
     }
-    return createMethodDecorator({ queries: [ query ] })
+    return createMethodDecorator({ queries: [{ ...processless, schema }] })
 }

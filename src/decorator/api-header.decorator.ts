@@ -1,31 +1,38 @@
 import _ from 'lodash'
-import { SetOptional } from 'type-fest'
-import { OpenApiHeader, createClassMethodDecorator } from '../builder'
+import { createClassMethodDecorator } from '../builder'
 import { enumToArray } from '../util'
 import { Enum, Schema, Type } from '../storage'
+import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
 
-export interface ApiHeaderOption extends SetOptional<OpenApiHeader, 'schema'> {
+export interface ApiHeaderOption {
     type?: Type
     format?: string
     enum?: Enum
+    name: string
+    description?: string
+    required?: boolean
+    deprecated?: boolean
+    allowEmptyValue?: boolean
+    style?: ParameterStyle
+    explode?: boolean
+    allowReserved?: boolean
+    examples?: Record<string, Example | Reference>
+    example?: any
+    content?: Content
 }
 
-const defaultOption = {
+const defaultOption: Partial<ApiHeaderOption> = {
     required: true
 }
 
 export function ApiHeader(option: ApiHeaderOption) {
-    const { type, format, enum: enums, schema, ...apiParam } = { ...defaultOption, ...option }
-    const headers = { ...apiParam, schema: { type: String } as Schema }
+    const { type, format, enum: enums, ...processless } = { ...defaultOption, ...option }
+    let schema = {}
     if (type) {
-        headers.schema.type = type
-        headers.schema.format = format
+        schema = { type, format }
     } else if (enums) {
-        const { itemType, array } = enumToArray(enums)
-        headers.schema.enum = array
-        headers.schema.type = itemType
-    } else if (schema) {
-        headers.schema = schema
+        const { itemType, items } = enumToArray(enums)
+        schema = { enum: items, type: itemType }
     }
-    return createClassMethodDecorator({ headers: [ headers ] })
+    return createClassMethodDecorator({ headers: [ { ...processless, schema } ] })
 }

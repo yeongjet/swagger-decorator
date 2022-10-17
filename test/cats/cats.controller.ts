@@ -67,13 +67,13 @@ export class CatsController {
     // return this.catsService.create(createCatDto);
   }
 
-  @Get(':id')
-  @ApiResponse({
-    status: 200,
-    description: 'The found record',
-    type: [Cat],
-  })
-  findOne(id: string) {
-    // return this.catsService.findOne(+id);
-  }
+  // @Get(':id')
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'The found record',
+  //   type: [Cat],
+  // })
+  // findOne(id: string) {
+  //   // return this.catsService.findOne(+id);
+  // }
 }

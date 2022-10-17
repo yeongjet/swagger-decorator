@@ -1,15 +1,11 @@
 import _ from 'lodash'
 import { StatusCodes } from 'http-status-codes'
-import { SetOptional, MergeExclusive } from 'type-fest'
-import { Response, Type, Schema } from '../storage'
+import { SetOptional } from 'type-fest'
+import { Response, Type } from '../storage'
 import { createClassMethodDecorator } from '../builder'
 import { wrapArray } from '../util'
 
-export type ApiResponseOption = Omit<SetOptional<Response, 'status'>, 'schema'> & 
-    MergeExclusive<
-        { type?: Type, isArray?: boolean },
-        { schema?: Schema }
-    >
+export type ApiResponseOption = Omit<SetOptional<Response, 'status'>, 'schema'> & { type?: Type, isArray?: boolean }
 
 const defaultOption = {
     status: StatusCodes.OK,
@@ -17,14 +13,9 @@ const defaultOption = {
 }
 
 export function ApiResponse(option: ApiResponseOption): MethodDecorator & ClassDecorator {
-    const { type, schema, isArray, ...apiParam } = { ...defaultOption, ...option }
-    const responses = { ...apiParam, schema: {} as Schema }
-    if (type) {
-        responses.schema = wrapArray(type, isArray)
-    } else if (schema) {
-        responses.schema = schema
-    }
-    return createClassMethodDecorator({ responses })
+    const { type, isArray, ...processless } = { ...defaultOption, ...option }
+    const schema = type ? wrapArray(type, isArray) : {}
+    return createClassMethodDecorator({ responses: { ...processless, schema }})
 }
 
 export const ApiOkResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.OK })
