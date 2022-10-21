@@ -8,10 +8,10 @@ export interface OpenAPI {
     components?: ComponentsObject // An element to hold various schemas for the document.
     security?: SecurityRequirementObject[] // A declaration of which security mechanisms can be used across the API. The list of values includes alternative security requirement objects that can be used. Only one of the security requirement objects need to be satisfied to authorize a request. Individual operations can override this definition. To make security optional, an empty security requirement ({}) can be included in the array.
     tags?: TagObject[] // A list of tags used by the document with additional metadata. The order of the tags can be used to reflect on their order by the parsing tools. Not all tags that are used by the Operation Object must be declared. The tags that are not declared MAY be organized randomly or based on the tools’ logic. Each tag name in the list MUST be unique.
-    externalDocs: ExternalDocumentationObject // Additional external documentation.
+    externalDocs?: ExternalDocumentationObject // Additional external documentation.
 }
 
-// in OpenAPI->(info:InfoObject)
+// OpenAPI->(info:InfoObject)
 export interface InfoObject {
     title: string // REQUIRED. The title of the API.
     summary?: string // A short summary of the API.
@@ -99,12 +99,12 @@ export interface ParameterObject {
                  // If in is "path", the name field MUST correspond to a template expression occurring within the path field in the Paths Object. See Path Templating for further information.
                  // If in is "header" and the name field is "Accept", "Content-Type" or "Authorization", the parameter definition SHALL be ignored.
                  // For all other cases, the name corresponds to the parameter name used by the in property.
-    in: string // REQUIRED. The location of the parameter. Possible values are "query", "header", "path" or "cookie".
+    in: 'query' | 'header' | 'path' | 'cookie' // REQUIRED. The location of the parameter. Possible values are "query", "header", "path" or "cookie".
     description?: string // A brief description of the parameter. This could contain examples of use. CommonMark syntax MAY be used for rich text representation.
     required?: boolean // Determines whether this parameter is mandatory. If the parameter location is "path", this property is REQUIRED and its value MUST be true. Otherwise, the property MAY be included and its default value is false.
     deprecated?: boolean // Specifies that a parameter is deprecated and SHOULD be transitioned out of usage. Default value is false.
     allowEmptyValue?: boolean // Sets the ability to pass empty-valued parameters. This is valid only for query parameters and allows sending a parameter with an empty value. Default value is false. If style is used, and if behavior is n/a (cannot be serialized), the value of allowEmptyValue SHALL be ignored. Use of this property is NOT RECOMMENDED, as it is likely to be removed in a later revision.
-    style?: string // Describes how the parameter value will be serialized depending on the type of the parameter value. Default values (based on value of in): for query - form; for path - simple; for header - simple; for cookie - form.
+    style?: 'matrix' | 'label' | 'form' | 'simple' | 'spaceDelimited' | 'pipeDelimited' | 'deepObject' // Describes how the parameter value will be serialized depending on the type of the parameter value. Default values (based on value of in): for query - form; for path - simple; for header - simple; for cookie - form.
     explode?: boolean // When this is true, parameter values of type array or object generate separate parameters for each value of the array or key-value pair of the map. For other types of parameters this property has no effect. When style is form, the default value is true. For all other styles, the default value is false.
     allowReserved?: boolean // Determines whether the parameter value SHOULD allow reserved characters, as defined by [RFC3986] :/?#[]@!$&'()*+,;= to be included without percent-encoding. This property only applies to parameters with an in value of query. The default value is false.
     schema?: SchemaObject // The schema defining the type used for the parameter.
@@ -171,20 +171,20 @@ export interface SchemaObject {
     // The OpenAPI Specification’s base vocabulary
     discriminator: DiscriminatorObject // Adds support for polymorphism. The discriminator is an object name that is used to differentiate between other schemas which may satisfy the payload description. See Composition and Inheritance for more details.
     xml: XMLObject // This MAY be used only on properties schemas. It has no effect on root schemas. Adds additional metadata to describe the XML representation of this property.
-    externalDocs: ExternalDocumentationObject	// Additional external documentation for this schema.
+    externalDocs: ExternalDocumentationObject // Additional external documentation for this schema.
 }
 
 export interface DiscriminatorObject {
     propertyName: string // REQUIRED. The name of the property in the payload that will hold the discriminator value.
-    mapping?: Record<string, string>	// An object to hold mappings between payload values and schema names or references.
+    mapping?: Record<string, string> // An object to hold mappings between payload values and schema names or references.
 }
 
 export interface XMLObject {
-    name?: string	// Replaces the name of the element/attribute used for the described schema property. When defined within items, it will affect the name of the individual XML elements within the list. When defined alongside type being array (outside the items), it will affect the wrapping element and only if wrapped is true. If wrapped is false, it will be ignored.
-    namespace?: string	// The URI of the namespace definition. This MUST be in the form of an absolute URI.
-    prefix?: string	// The prefix to be used for the name.
-    attribute?: boolean	// Declares whether the property definition translates to an attribute instead of an element. Default value is false.
-    wrapped?: boolean	// MAY be used only for an array definition. Signifies whether the array is wrapped (for example, <books><book/><book/></books>) or unwrapped (<book/><book/>). Default value is false. The definition takes effect only when defined alongside type being array (outside the items).
+    name?: string // Replaces the name of the element/attribute used for the described schema property. When defined within items, it will affect the name of the individual XML elements within the list. When defined alongside type being array (outside the items), it will affect the wrapping element and only if wrapped is true. If wrapped is false, it will be ignored.
+    namespace?: string // The URI of the namespace definition. This MUST be in the form of an absolute URI.
+    prefix?: string // The prefix to be used for the name.
+    attribute?: boolean // Declares whether the property definition translates to an attribute instead of an element. Default value is false.
+    wrapped?: boolean // MAY be used only for an array definition. Signifies whether the array is wrapped (for example, <books><book/><book/></books>) or unwrapped (<book/><book/>). Default value is false. The definition takes effect only when defined alongside type being array (outside the items).
 }
 
 // OpenAPI->webhooks->{string}
@@ -194,15 +194,15 @@ export interface XMLObject {
 // OpenAPI->(paths:PathsObject)>({url}:PathItemObject)->{http method}->requestBody
 // OpenAPI->(paths:PathsObject)>({url}:PathItemObject)->{http method}->callbacks->{string}
 export interface ReferenceObject {
-    $ref: string	// REQUIRED. The reference identifier. This MUST be in the form of a URI.
+    $ref: string // REQUIRED. The reference identifier. This MUST be in the form of a URI.
     summary?: string // A short summary which by default SHOULD override that of the referenced component. If the referenced object-type does not allow a summary field, then this field has no effect.
     description?: string // A description which by default SHOULD override that of the referenced component. CommonMark syntax MAY be used for rich text representation. If the referenced object-type does not allow a description field, then this field has no effect.
 }
 
 export interface RequestBodyObject {
-    description?: string	// A brief description of the request body. This could contain examples of use. CommonMark syntax MAY be used for rich text representation.
-    content: Record<string, MediaTypeObject>	// REQUIRED. The content of the request body. The key is a media type or media type range and the value describes it. For requests that match multiple keys, only the most specific key is applicable. e.g. text/plain overrides text/*
-    required?: boolean	// Determines if the request body is required in the request. Defaults to false.
+    description?: string // A brief description of the request body. This could contain examples of use. CommonMark syntax MAY be used for rich text representation.
+    content: Record<string, MediaTypeObject> // REQUIRED. The content of the request body. The key is a media type or media type range and the value describes it. For requests that match multiple keys, only the most specific key is applicable. e.g. text/plain overrides text/*
+    required?: boolean // Determines if the request body is required in the request. Defaults to false.
 }
 
 export interface MediaTypeObject {
@@ -223,7 +223,7 @@ export interface EncodingObject {
     headers?: Record<string, HeaderObject | ReferenceObject> // A map allowing additional information to be provided as headers, for example Content-Disposition. Content-Type is described separately and SHALL be ignored in this section. This property SHALL be ignored if the request body media type is not a multipart.
     style?: string // Describes how a specific property value will be serialized depending on its type. See Parameter Object for details on the style property. The behavior follows the same values as query parameters, including default values. This property SHALL be ignored if the request body media type is not application/x-www-form-urlencoded or multipart/form-data. If a value is explicitly defined, then the value of contentType (implicit or explicit) SHALL be ignored.
     explode?: boolean // When this is true, property values of type array or object generate separate parameters for each value of the array, or key-value-pair of the map. For other types of properties this property has no effect. When style is form, the default value is true. For all other styles, the default value is false. This property SHALL be ignored if the request body media type is not application/x-www-form-urlencoded or multipart/form-data. If a value is explicitly defined, then the value of contentType (implicit or explicit) SHALL be ignored.
-    allowReserved?: boolean	// Determines whether the parameter value SHOULD allow reserved characters, as defined by [RFC3986] :/?#[]@!$&'()*+,;= to be included without percent-encoding. The default value is false. This property SHALL be ignored if the request body media type is not application/x-www-form-urlencoded or multipart/form-data. If a value is explicitly defined, then the value of contentType (implicit or explicit) SHALL be ignored.
+    allowReserved?: boolean // Determines whether the parameter value SHOULD allow reserved characters, as defined by [RFC3986] :/?#[]@!$&'()*+,;= to be included without percent-encoding. The default value is false. This property SHALL be ignored if the request body media type is not application/x-www-form-urlencoded or multipart/form-data. If a value is explicitly defined, then the value of contentType (implicit or explicit) SHALL be ignored.
 }
 
 export interface HeaderObject extends Omit<ParameterObject, 'name' | 'in'> {}
@@ -233,18 +233,18 @@ export interface ResponsesObject extends Record<string, ResponseObject | Referen
 }
 
 export interface ResponseObject {
-    description: string	// REQUIRED. A description of the response. CommonMark syntax MAY be used for rich text representation.
-    headers?: Record<string, HeaderObject | ReferenceObject>	// Maps a header name to its definition. [RFC7230] states header names are case insensitive. If a response header is defined with the name "Content-Type", it SHALL be ignored.
-    content?: Record<string, MediaTypeObject>	// A map containing descriptions of potential response payloads. The key is a media type or media type range and the value describes it. For responses that match multiple keys, only the most specific key is applicable. e.g. text/plain overrides text/*
+    description: string // REQUIRED. A description of the response. CommonMark syntax MAY be used for rich text representation.
+    headers?: Record<string, HeaderObject | ReferenceObject> // Maps a header name to its definition. [RFC7230] states header names are case insensitive. If a response header is defined with the name "Content-Type", it SHALL be ignored.
+    content?: Record<string, MediaTypeObject> // A map containing descriptions of potential response payloads. The key is a media type or media type range and the value describes it. For responses that match multiple keys, only the most specific key is applicable. e.g. text/plain overrides text/*
     links?: Record<string, LinkObject | ReferenceObject> // A map of operations links that can be followed from the response. The key of the map is a short name for the link, following the naming constraints of the names for Component Objects.
 }
 
 export interface LinkObject {
-    operationRef?: string	// A relative or absolute URI reference to an OAS operation. This field is mutually exclusive of the operationId field, and MUST point to an Operation Object. Relative operationRef values MAY be used to locate an existing Operation Object in the OpenAPI definition. See the rules for resolving Relative References.
-    operationId?: string	// The name of an existing, resolvable OAS operation, as defined with a unique operationId. This field is mutually exclusive of the operationRef field.
+    operationRef?: string // A relative or absolute URI reference to an OAS operation. This field is mutually exclusive of the operationId field, and MUST point to an Operation Object. Relative operationRef values MAY be used to locate an existing Operation Object in the OpenAPI definition. See the rules for resolving Relative References.
+    operationId?: string // The name of an existing, resolvable OAS operation, as defined with a unique operationId. This field is mutually exclusive of the operationRef field.
     parameters?: Record<string, any> // A map representing parameters to pass to an operation as specified with operationId or identified via operationRef. The key is the parameter name to be used, whereas the value can be a constant or an expression to be evaluated and passed to the linked operation. The parameter name can be qualified using the parameter location [{in}.]{name} for operations that use the same parameter name in different locations (e.g. path.id).
-    requestBody?: any	// A literal value or {expression} to use as a request body when calling the target operation.
-    description?: string	// A description of the link. CommonMark syntax MAY be used for rich text representation.
+    requestBody?: any // A literal value or {expression} to use as a request body when calling the target operation.
+    description?: string // A description of the link. CommonMark syntax MAY be used for rich text representation.
     server?: ServerObject // A server object to be used by the target operation.
 }
 
@@ -253,45 +253,45 @@ export interface CallbackObject extends Record<string, PathItemObject | Referenc
 export interface SecurityRequirementObject extends Record<string, string[]> {}
 
 export interface ComponentsObject {
-    schemas?: Record<string, SchemaObject>	// An object to hold reusable Schema Objects.
-    responses?: Record<string, ResponseObject | ReferenceObject>	// An object to hold reusable Response Objects.
-    parameters?: Record<string, ParameterObject | ReferenceObject>	// An object to hold reusable Parameter Objects.
-    examples?: Record<string, ExampleObject | ReferenceObject>	// An object to hold reusable Example Objects.
-    requestBodies?: Record<string, RequestBodyObject | ReferenceObject>	// An object to hold reusable Request Body Objects.
-    headers?: Record<string, HeaderObject | ReferenceObject>	// An object to hold reusable Header Objects.
-    securitySchemes?: Record<string, SecuritySchemeObject | ReferenceObject>	// An object to hold reusable Security Scheme Objects.
-    links?: Record<string, LinkObject | ReferenceObject>	// An object to hold reusable Link Objects.
-    callbacks?: Record<string, CallbackObject | ReferenceObject>	// An object to hold reusable Callback Objects.
-    pathItems?: Record<string, PathItemObject | ReferenceObject>	// An object to hold reusable Path Item Object.
+    schemas?: Record<string, SchemaObject> // An object to hold reusable Schema Objects.
+    responses?: Record<string, ResponseObject | ReferenceObject> // An object to hold reusable Response Objects.
+    parameters?: Record<string, ParameterObject | ReferenceObject> // An object to hold reusable Parameter Objects.
+    examples?: Record<string, ExampleObject | ReferenceObject> // An object to hold reusable Example Objects.
+    requestBodies?: Record<string, RequestBodyObject | ReferenceObject> // An object to hold reusable Request Body Objects.
+    headers?: Record<string, HeaderObject | ReferenceObject> // An object to hold reusable Header Objects.
+    securitySchemes?: Record<string, SecuritySchemeObject | ReferenceObject> // An object to hold reusable Security Scheme Objects.
+    links?: Record<string, LinkObject | ReferenceObject> // An object to hold reusable Link Objects.
+    callbacks?: Record<string, CallbackObject | ReferenceObject> // An object to hold reusable Callback Objects.
+    pathItems?: Record<string, PathItemObject | ReferenceObject> // An object to hold reusable Path Item Object.
 }
 
 export interface SecuritySchemeObject {
-    type: string	// REQUIRED. The type of the security scheme. Valid values are "apiKey", "http", "mutualTLS", "oauth2", "openIdConnect".
-    description?: string	// A description for security scheme. CommonMark syntax MAY be used for rich text representation.
-    name: string		// REQUIRED. The name of the header, query or cookie parameter to be used.
-    in: string	// REQUIRED. The location of the API key. Valid values are "query", "header" or "cookie".
-    scheme: string	// REQUIRED. The name of the HTTP Authorization scheme to be used in the Authorization header as defined in [RFC7235]. The values used SHOULD be registered in the IANA Authentication Scheme registry.
-    bearerFormat?: string	// A hint to the client to identify how the bearer token is formatted. Bearer tokens are usually generated by an authorization server, so this information is primarily for documentation purposes.
-    flows: OAuthFlowsObject		// REQUIRED. An object containing configuration information for the flow types supported.
-    openIdConnectUrl: string	// REQUIRED. OpenId Connect URL to discover OAuth2 configuration values. This MUST be in the form of a URL. The OpenID Connect standard requires the use of TLS.
+    type: string // REQUIRED. The type of the security scheme. Valid values are "apiKey", "http", "mutualTLS", "oauth2", "openIdConnect".
+    description?: string // A description for security scheme. CommonMark syntax MAY be used for rich text representation.
+    name: string  // REQUIRED. The name of the header, query or cookie parameter to be used.
+    in: 'query' | 'header' | 'cookie' // REQUIRED. The location of the API key. Valid values are "query", "header" or "cookie".
+    scheme: string // REQUIRED. The name of the HTTP Authorization scheme to be used in the Authorization header as defined in [RFC7235]. The values used SHOULD be registered in the IANA Authentication Scheme registry.
+    bearerFormat?: string // A hint to the client to identify how the bearer token is formatted. Bearer tokens are usually generated by an authorization server, so this information is primarily for documentation purposes.
+    flows: OAuthFlowsObject  // REQUIRED. An object containing configuration information for the flow types supported.
+    openIdConnectUrl: string // REQUIRED. OpenId Connect URL to discover OAuth2 configuration values. This MUST be in the form of a URL. The OpenID Connect standard requires the use of TLS.
 }
 
 export interface OAuthFlowsObject {
-    implicit?: OAuthFlowObject	// Configuration for the OAuth Implicit flow
-    password?: OAuthFlowObject	// Configuration for the OAuth Resource Owner Password flow
-    clientCredentials?: OAuthFlowObject	// Configuration for the OAuth Client Credentials flow. Previously called application in OpenAPI 2.0.
-    authorizationCode?: OAuthFlowObject	// Configuration for the OAuth Authorization Code flow. Previously called accessCode in OpenAPI 2.0.
+    implicit?: OAuthFlowObject // Configuration for the OAuth Implicit flow
+    password?: OAuthFlowObject // Configuration for the OAuth Resource Owner Password flow
+    clientCredentials?: OAuthFlowObject // Configuration for the OAuth Client Credentials flow. Previously called application in OpenAPI 2.0.
+    authorizationCode?: OAuthFlowObject // Configuration for the OAuth Authorization Code flow. Previously called accessCode in OpenAPI 2.0.
 }
 
 export interface OAuthFlowObject {
     authorizationUrl: string// REQUIRED. The authorization URL to be used for this flow. This MUST be in the form of a URL. The OAuth2 standard requires the use of TLS.
     tokenUrl: string // REQUIRED. The token URL to be used for this flow. This MUST be in the form of a URL. The OAuth2 standard requires the use of TLS.
-    refreshUrl?: string	// The URL to be used for obtaining refresh tokens. This MUST be in the form of a URL. The OAuth2 standard requires the use of TLS.
-    scopes: Record<string, string>	// REQUIRED. The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it. The map MAY be empty.
+    refreshUrl?: string // The URL to be used for obtaining refresh tokens. This MUST be in the form of a URL. The OAuth2 standard requires the use of TLS.
+    scopes: Record<string, string> // REQUIRED. The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it. The map MAY be empty.
 }
 
 export interface TagObject {
-    name: string	// REQUIRED. The name of the tag.
-    description?: string	// A description for the tag. CommonMark syntax MAY be used for rich text representation.
-    externalDocs?: ExternalDocumentationObject	// Additional external documentation for this tag.
+    name: string // REQUIRED. The name of the tag.
+    description?: string // A description for the tag. CommonMark syntax MAY be used for rich text representation.
+    externalDocs?: ExternalDocumentationObject // Additional external documentation for this tag.
 }

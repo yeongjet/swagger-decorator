@@ -2,6 +2,7 @@ import _ from 'lodash'
 import { createMethodDecorator } from '../builder'
 import { enumToArray } from '../util'
 import { Enum, Type } from '../storage'
+import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
 import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
 
 export interface ApiParamOption {

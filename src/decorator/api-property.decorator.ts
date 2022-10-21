@@ -4,6 +4,7 @@ import { enumToArray, wrapArray } from '../util'
 import { createPropertyDecorator } from '../builder'
 import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
 import { SetRequired } from 'type-fest'
+import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
 
 export interface ApiPropertyOption {
     type?: Type

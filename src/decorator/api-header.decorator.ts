@@ -1,8 +1,8 @@
 import _ from 'lodash'
-import { createClassMethodDecorator } from '../builder'
+import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
 import { enumToArray } from '../util'
-import { Enum, Schema, Type } from '../storage'
-import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
+import { Enum, Type } from '../storage'
+import { ExampleObject, ReferenceObject, MediaTypeObject } from '../common/open-api/openapi-spec-v3.1.0'
 
 export interface ApiHeaderOption {
     type?: Type
@@ -13,12 +13,11 @@ export interface ApiHeaderOption {
     required?: boolean
     deprecated?: boolean
     allowEmptyValue?: boolean
-    style?: ParameterStyle
     explode?: boolean
     allowReserved?: boolean
-    examples?: Record<string, Example | Reference>
+    examples?: Record<string, ExampleObject | ReferenceObject>
     example?: any
-    content?: Content
+    content?: Record<string, MediaTypeObject>
 }
 
 const defaultOption: Partial<ApiHeaderOption> = {
@@ -34,5 +33,13 @@ export function ApiHeader(option: ApiHeaderOption) {
         const { itemType, items } = enumToArray(enums)
         schema = { enum: items, type: itemType }
     }
-    return createClassMethodDecorator({ headers: [ { ...processless, schema } ] })
+    // return createClassMethodDecorator({ headers: [ { ...processless, schema } ] })
+    return (...[ target, property ]: ClassDecoratorParams | MethodDecoratorParams) => {
+        guard(_.isString(property), `property key must be string`)
+        if (property) {
+            set(storage, `controllers.${(target as Object).constructor.name}.${property as string}.consumes`, mimeTypes)
+        } else {
+            set(storage, `controllers.${(target as Function).name}.${property}.consumes`, mimeTypes)
+        }
+    }
 }

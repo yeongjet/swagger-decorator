@@ -8,7 +8,7 @@ import { Type, Storage, Schema, Parameter, ControllerRoute } from '../storage'
 import { Class, PrimitiveClass } from '../common/type-fest'
 import TypeFest, { Merge, SetOptional } from 'type-fest'
 
-const openApiVersion = '3.1.0'
+
 
 type UnnamedDecoratorParam = { name: undefined, in: `${ParamType}`, type: Type, required: boolean }
 type NamedDecoratorParam = { name: string, in: `${ParamType}`, type: Type, required: boolean }

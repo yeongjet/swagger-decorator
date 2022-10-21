@@ -1,13 +1,13 @@
 import _ from 'lodash'
-import { Enum, Type, Schema } from './storage'
+import { Enum, Type } from './storage'
 import { primitiveClass, PrimitiveClass } from './common/type-fest'
 
-export const wrapArray = (type: Type, isArray: boolean, array?: any[]): Schema => {
+export const wrapArray = (type: Type, isArray: boolean, array?: any[]) => {
     const items = array ? { type, enum: array } : { type }
     return isArray ? { type: 'array', items } : items
 }
 
-export function enumToArray(enums: Enum): { itemType: Number | String, items: number[] | string[] } {
+export function enumToArray(enums: Enum): { itemType: Number | String; items: number[] | string[] } {
     const items = _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil) : _.keys(enums).filter(n => _.isNaN(parseInt(n)))) as any
     const itemType = { number: Number, string: String }[typeof items.at(0)] || String
     return { itemType, items }
@@ -45,10 +45,19 @@ export const warning = (content: string) => {
     console.log(`warning: ${content}`)
 }
 
+export const set = (obj: any, path: string, item: any) => {
+    const exist = _.get(obj, path)
+    if (_.isArray(exist)) {
+        exist.push(...item)
+    } else {
+        _.set(obj, path, item)
+    }
+}
+
 export const merge = (n: object, v: object, arrayMergeKeys: string[]) => {
     let arrayStack = 0
     _.mergeWith(n, v, (c, r, stack) => {
-        if(!_.isArray(c)) {
+        if (!_.isArray(c)) {
             return
         }
         let mergeKey = arrayMergeKeys[arrayStack]
@@ -57,7 +66,7 @@ export const merge = (n: object, v: object, arrayMergeKeys: string[]) => {
         if (t) {
             return
         }
-        return c.concat(r);
+        return c.concat(r)
     })
 }
 

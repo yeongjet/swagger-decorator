@@ -4,6 +4,7 @@ import { SetOptional } from 'type-fest'
 import { Response, Type } from '../storage'
 import { createClassMethodDecorator } from '../builder'
 import { wrapArray } from '../util'
+import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
 
 export type ApiResponseOption = Omit<SetOptional<Response, 'status'>, 'schema'> & { type?: Type, isArray?: boolean }
 
