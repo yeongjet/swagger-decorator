@@ -2,7 +2,7 @@ import 'reflect-metadata'
 import { storage, Schema } from '../storage'
 import { guard, merge } from '../util'
 import { PropertyKey } from '../common'
-import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
+import { ParameterStyle, Example, Reference, Content } from '../common/open-api/openapi-spec-v3.1.0'
 import _ from 'lodash'
 import { SetOptional } from 'type-fest'
 // import * as defaultValue from './default-value'
@@ -27,21 +27,6 @@ export type ParameterDecoratorParams = [
     property: PropertyKey,
     parameterIndex: number
 ]
-
-// export interface OpenApiProperty {
-//     name: string,
-//     schema: Schema,
-//     description?: string
-//     required?: boolean
-//     deprecated?: boolean
-//     allowEmptyValue?: boolean
-//     style?: ParameterStyle
-//     explode?: boolean
-//     allowReserved?: boolean
-//     examples?: Record<string, Example | Reference>
-//     example?: any
-//     content?: Content
-// }
 
 export interface OpenApiHeader {
     name: string
@@ -72,7 +57,6 @@ export interface OpenApiQuery {
     example?: any
     content?: Content
 }
-
 
 export const createPropertyDecorator =
     (value: any): PropertyDecorator => (...[ target, property ]: PropertyDecoratorParams) => {

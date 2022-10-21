@@ -3,16 +3,17 @@ import { enumToArray, wrapArray } from '../util'
 import { createMethodDecorator } from '../builder'
 import { Type, Enum } from '../storage'
 import { SetRequired } from 'type-fest'
+import { Class } from 'type-fest'
 
 export interface ApiBodyOption {
-    type?: Type
+    type: Class<any>
     enum?: Enum
     isArray?: boolean
     description?: string
     required?: boolean
 }
 
-const defaultOption: SetRequired<ApiBodyOption, 'isArray'> = {
+const defaultOption: SetRequired<Omit<ApiBodyOption, 'type'>, 'isArray'> = {
     isArray: false,
     required: true
 }
