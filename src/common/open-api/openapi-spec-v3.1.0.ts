@@ -99,18 +99,18 @@ export interface ParameterObject {
                  // If in is "path", the name field MUST correspond to a template expression occurring within the path field in the Paths Object. See Path Templating for further information.
                  // If in is "header" and the name field is "Accept", "Content-Type" or "Authorization", the parameter definition SHALL be ignored.
                  // For all other cases, the name corresponds to the parameter name used by the in property.
-    in: 'query' | 'header' | 'path' | 'cookie' // REQUIRED. The location of the parameter. Possible values are "query", "header", "path" or "cookie".
+    in: ParameterLocation // REQUIRED. The location of the parameter. Possible values are "query", "header", "path" or "cookie".
     description?: string // A brief description of the parameter. This could contain examples of use. CommonMark syntax MAY be used for rich text representation.
     required?: boolean // Determines whether this parameter is mandatory. If the parameter location is "path", this property is REQUIRED and its value MUST be true. Otherwise, the property MAY be included and its default value is false.
     deprecated?: boolean // Specifies that a parameter is deprecated and SHOULD be transitioned out of usage. Default value is false.
     allowEmptyValue?: boolean // Sets the ability to pass empty-valued parameters. This is valid only for query parameters and allows sending a parameter with an empty value. Default value is false. If style is used, and if behavior is n/a (cannot be serialized), the value of allowEmptyValue SHALL be ignored. Use of this property is NOT RECOMMENDED, as it is likely to be removed in a later revision.
-    style?: 'matrix' | 'label' | 'form' | 'simple' | 'spaceDelimited' | 'pipeDelimited' | 'deepObject' // Describes how the parameter value will be serialized depending on the type of the parameter value. Default values (based on value of in): for query - form; for path - simple; for header - simple; for cookie - form.
+    style?: ParameterStyle // Describes how the parameter value will be serialized depending on the type of the parameter value. Default values (based on value of in): for query - form; for path - simple; for header - simple; for cookie - form.
     explode?: boolean // When this is true, parameter values of type array or object generate separate parameters for each value of the array or key-value pair of the map. For other types of parameters this property has no effect. When style is form, the default value is true. For all other styles, the default value is false.
     allowReserved?: boolean // Determines whether the parameter value SHOULD allow reserved characters, as defined by [RFC3986] :/?#[]@!$&'()*+,;= to be included without percent-encoding. This property only applies to parameters with an in value of query. The default value is false.
     schema?: SchemaObject // The schema defining the type used for the parameter.
     example?: any // Example of the parameter’s potential value. The example SHOULD match the specified schema and encoding properties if present. The example field is mutually exclusive of the examples field. Furthermore, if referencing a schema that contains an example, the example value SHALL override the example provided by the schema. To represent examples of media types that cannot naturally be represented in JSON or YAML, a string value can contain the example with escaping where necessary.
     examples?: Record<string,  ExampleObject | ReferenceObject> // Examples of the parameter’s potential value. Each example SHOULD contain a value in the correct format as specified in the parameter encoding. The examples field is mutually exclusive of the example field. Furthermore, if referencing a schema that contains an example, the examples value SHALL override the example provided by the schema.
-    content?: Record<string, MediaTypeObject> // A map containing the representations for the parameter. The key is the media type and the value describes it. The map MUST only contain one entry.
+    content?: Content // A map containing the representations for the parameter. The key is the media type and the value describes it. The map MUST only contain one entry.
 }
 
 // Reference: https://json-schema.org/draft/2020-12/json-schema-validation.html
@@ -201,11 +201,12 @@ export interface ReferenceObject {
 
 export interface RequestBodyObject {
     description?: string // A brief description of the request body. This could contain examples of use. CommonMark syntax MAY be used for rich text representation.
-    content: Record<string, MediaTypeObject> // REQUIRED. The content of the request body. The key is a media type or media type range and the value describes it. For requests that match multiple keys, only the most specific key is applicable. e.g. text/plain overrides text/*
+    content: Content // REQUIRED. The content of the request body. The key is a media type or media type range and the value describes it. For requests that match multiple keys, only the most specific key is applicable. e.g. text/plain overrides text/*
     required?: boolean // Determines if the request body is required in the request. Defaults to false.
 }
 
 export interface MediaTypeObject {
+    schema?: SchemaObject // The schema defining the content of the request, response, or parameter.
     example?: any // Example of the media type. The example object SHOULD be in the correct format as specified by the media type. The example field is mutually exclusive of the examples field. Furthermore, if referencing a schema which contains an example, the example value SHALL override the example provided by the schema.
     examples?: Record<string, ExampleObject | ReferenceObject> // Examples of the media type. Each example object SHOULD match the media type and specified schema if present. The examples field is mutually exclusive of the example field. Furthermore, if referencing a schema which contains an example, the examples value SHALL override the example provided by the schema.
     encoding?: Record<string, EncodingObject> // A map between a property name and its encoding information. The key, being the property name, MUST exist in the schema as a property. The encoding object SHALL only apply to requestBody objects when the media type is multipart or application/x-www-form-urlencoded.
@@ -235,7 +236,7 @@ export interface ResponsesObject extends Record<string, ResponseObject | Referen
 export interface ResponseObject {
     description: string // REQUIRED. A description of the response. CommonMark syntax MAY be used for rich text representation.
     headers?: Record<string, HeaderObject | ReferenceObject> // Maps a header name to its definition. [RFC7230] states header names are case insensitive. If a response header is defined with the name "Content-Type", it SHALL be ignored.
-    content?: Record<string, MediaTypeObject> // A map containing descriptions of potential response payloads. The key is a media type or media type range and the value describes it. For responses that match multiple keys, only the most specific key is applicable. e.g. text/plain overrides text/*
+    content?: Content // A map containing descriptions of potential response payloads. The key is a media type or media type range and the value describes it. For responses that match multiple keys, only the most specific key is applicable. e.g. text/plain overrides text/*
     links?: Record<string, LinkObject | ReferenceObject> // A map of operations links that can be followed from the response. The key of the map is a short name for the link, following the naming constraints of the names for Component Objects.
 }
 
@@ -295,3 +296,7 @@ export interface TagObject {
     description?: string // A description for the tag. CommonMark syntax MAY be used for rich text representation.
     externalDocs?: ExternalDocumentationObject // Additional external documentation for this tag.
 }
+
+export type Content = Record<string, MediaTypeObject>
+export type ParameterLocation = 'query' | 'header' | 'path' | 'cookie'
+export type ParameterStyle = 'matrix' | 'label' | 'form' | 'simple' | 'spaceDelimited' | 'pipeDelimited' | 'deepObject'

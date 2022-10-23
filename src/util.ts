@@ -29,9 +29,7 @@ export const isContain = (first: object, second: object) => {
 
 export const isValidKey = (name?: string) => _.isString(name) && name.length > 0
 
-//export const isNotPrimitiveType = (type: Type): type is TypeFest.Class<any> => !(_.isFunction(type) && primitiveClass.some(n => n === type))
-
-export const isPrimitiveType = (type: Type): type is PrimitiveClass => _.isFunction(type) && primitiveClass.some(n => n === type)
+export const isPrimitiveType = (type?: Type): type is PrimitiveClass => _.isFunction(type) && primitiveClass.some(n => n === type)
 
 export const negate = (value: boolean) => !value
 
@@ -54,22 +52,6 @@ export const set = (obj: any, path: string, item: any) => {
     }
 }
 
-export const merge = (n: object, v: object, arrayMergeKeys: string[]) => {
-    let arrayStack = 0
-    _.mergeWith(n, v, (c, r, stack) => {
-        if (!_.isArray(c)) {
-            return
-        }
-        let mergeKey = arrayMergeKeys[arrayStack]
-        arrayStack++
-        const t = _.find(c, { [mergeKey]: r.at(0)[mergeKey] })
-        if (t) {
-            return
-        }
-        return c.concat(r)
-    })
-}
-
-export const wrapBraceIfParam = (param: string) => {
-    return param.indexOf('/:') === 0 ? `/{${param.slice(2)}}` : param
+export const wrapBrace = (url: string) => {
+    return url.indexOf('/:') === 0 ? `/{${url.slice(2)}}` : url
 }

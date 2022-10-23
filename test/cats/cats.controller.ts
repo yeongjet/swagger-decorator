@@ -81,18 +81,14 @@ export class CatsController {
   //@ApiOperation({ summary: "summary: 'Create cat'" })
   @ApiBody({ type: ApiBodyDto })
   @ApiBody({ type: String })
-  @ApiParam({ name: 'ApiParam_(type:no)' })
   @ApiParam({ name: 'ApiParam_(type:basic)', type: String })
-  @ApiParam({ name: 'ApiParam_(type:class)', type: PersonApiParam })
-  @ApiHeader({ name: 'ApiHeader_(type:no)' })
-  @ApiHeader({ name: 'ApiHeader_(type:basic)', type: String })
-  @ApiHeader({ name: 'ApiHeader_(type:class)', type: PersonApiHeader })
-  @ApiQuery({ name: 'ApiQuery_(type:no)' })
+  @ApiParam({ type: PersonApiParam })
+  @ApiHeader({ name: 'ApiHeader_(type:no)', type: String })
+  @ApiHeader({ type: PersonApiHeader })
   @ApiQuery({ name: 'ApiQuery_(type:basic)', type: String })
-  @ApiQuery({ name: 'ApiQuery_(type:class)', type: PersonApiQuery })
   @ApiQuery({ type: PersonApiQuery })
-  @ApiQuery({ type: String })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiConsumes('aaa/x-www-form-urlencoded')
   async create(@Body() createCatDto: PersonBody, @Body('body_hasname') createCompanyDto: PersonBody, @Param('he') param: CompanyParam, @Headers() header: HomeHeader, @IP() ip) {
     // return this.catsService.create(createCatDto);
   }

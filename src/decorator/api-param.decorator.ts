@@ -1,39 +1,41 @@
 import _ from 'lodash'
-import { createMethodDecorator } from '../builder'
-import { enumToArray } from '../util'
-import { Enum, Type } from '../storage'
-import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
-import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
+import { guard, isPrimitiveType, set } from '../util'
+import { Enum, Type, storage } from '../storage'
+import { MethodDecoratorParams } from '../builder'
+import { ExampleObject, ReferenceObject } from '../common/open-api'
+import { ParameterLocation } from '../common'
 
 export interface ApiParamOption {
-    type?: Type
+    type: Type
     format?: string
     enum?: Enum
-    name: string
+    name?: string
     description?: string
     required?: boolean
     deprecated?: boolean
     allowEmptyValue?: boolean
-    style?: ParameterStyle
     explode?: boolean
     allowReserved?: boolean
-    examples?: Record<string, Example | Reference>
     example?: any
-    content?: Content
+    examples?: Record<string, ExampleObject | ReferenceObject>
 }
 
 const defaultOption: Partial<ApiParamOption> = {
     required: true
 }
 
-export function ApiParam(option: ApiParamOption) {
-    const { type, format, enum: enums, ...processless } = { ...defaultOption, ...option }
-    let schema = { type: String } as object
-    if (type) {
-        schema = { type, format }
-    } else if (enums) {
-        const { itemType, items } = enumToArray(enums)
-        schema = { type: itemType, enum: items }
+export function ApiParam(option: ApiParamOption): MethodDecorator {
+    return (...[target, property]: MethodDecoratorParams) => {
+        guard(_.isString(property), `property key must be string`)
+        const mergeOption = { ...defaultOption, ...option }
+        // TODO
+        // guard(
+        //     (_.isString(mergeOption.name) && isPrimitiveType(mergeOption.type)) ||
+        //         (_.isNil(mergeOption.name) && !isPrimitiveType(mergeOption.type)),
+        //     `@ApiParam option incorrect: only accepts name={string} type={PrimitiveType} or name=undefined type={CustomType}`
+        // )
+        set(storage, `controllers.${(target as Object).constructor.name}.handlers.${property as string}.parameters`, [
+            { in: ParameterLocation.PATH, ...mergeOption }
+        ])
     }
-    return createMethodDecorator({ params: [ { ...processless, schema } ] })
 }

@@ -1,15 +1,12 @@
-
-import { Enum, Type } from '../storage'
-import { enumToArray, wrapArray } from '../util'
-import { createPropertyDecorator } from '../builder'
-import { ParameterStyle, Example, Reference, Content } from '../common/open-api'
-import { SetRequired } from 'type-fest'
-import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
+import _ from 'lodash'
+import { Enum, Type, storage } from '../storage'
+import { guard, set } from '../util'
+import { ParameterStyle, ExampleObject, ReferenceObject, Content } from '../common/open-api'
+import { PropertyDecoratorParams } from '../builder'
 
 export interface ApiPropertyOption {
     type?: Type
     enum?: Enum
-    isArray?: boolean
     name?: string
     description?: string
     required?: boolean
@@ -18,24 +15,29 @@ export interface ApiPropertyOption {
     style?: ParameterStyle
     explode?: boolean
     allowReserved?: boolean
-    examples?: Record<string, Example | Reference>
+    examples?: Record<string, ExampleObject | ReferenceObject>
     example?: any
     content?: Content
 }
 
-const defaultOption: SetRequired<ApiPropertyOption, 'isArray'> = {
-    isArray: false,
+const defaultOption: ApiPropertyOption = {
     required: true
 }
 
 export function ApiProperty(option: ApiPropertyOption = {}): PropertyDecorator {
-    const { type, enum: enums, isArray, ...processless } = { ...defaultOption, ...option }
-    let schema = {}
-    if (type) {
-        schema = wrapArray(type, isArray)
-    } else if (enums) {
-        const { itemType, items } = enumToArray(enums)
-        schema = wrapArray(itemType, isArray, items)
+    return (...[ target, property ]: PropertyDecoratorParams) => {
+        guard(_.isString(property), `property name must be string`)
+        const type = Reflect.getMetadata('design:type', target, property as string)
+        set(storage, `models.${target.constructor.name}.${property as string}`, { type, ...defaultOption, ...option })
     }
-    return createPropertyDecorator({ ...processless, schema })
+}
+
+export function ApiPropertyOptional(option: ApiPropertyOption) {
+    return ApiProperty({ ...option, required: false })
+}
+
+export function ApiResponseProperty(
+    option: Pick<ApiPropertyOption, 'type' | 'example' | 'enum' | 'deprecated'> = {}
+): PropertyDecorator {
+    return ApiProperty(option)
 }

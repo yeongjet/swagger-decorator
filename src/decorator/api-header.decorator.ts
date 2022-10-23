@@ -1,14 +1,15 @@
 import _ from 'lodash'
+import { guard, isPrimitiveType, set } from '../util'
+import { Enum, Type, storage } from '../storage'
 import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
-import { enumToArray } from '../util'
-import { Enum, Type } from '../storage'
-import { ExampleObject, ReferenceObject, MediaTypeObject } from '../common/open-api/openapi-spec-v3.1.0'
+import { ExampleObject, ReferenceObject, Content } from '../common/open-api'
+import { ParameterLocation } from '../common'
 
 export interface ApiHeaderOption {
     type?: Type
     format?: string
     enum?: Enum
-    name: string
+    name?: string
     description?: string
     required?: boolean
     deprecated?: boolean
@@ -17,7 +18,6 @@ export interface ApiHeaderOption {
     allowReserved?: boolean
     examples?: Record<string, ExampleObject | ReferenceObject>
     example?: any
-    content?: Record<string, MediaTypeObject>
 }
 
 const defaultOption: Partial<ApiHeaderOption> = {
@@ -25,21 +25,18 @@ const defaultOption: Partial<ApiHeaderOption> = {
 }
 
 export function ApiHeader(option: ApiHeaderOption) {
-    const { type, format, enum: enums, ...processless } = { ...defaultOption, ...option }
-    let schema = {}
-    if (type) {
-        schema = { type, format }
-    } else if (enums) {
-        const { itemType, items } = enumToArray(enums)
-        schema = { enum: items, type: itemType }
-    }
-    // return createClassMethodDecorator({ headers: [ { ...processless, schema } ] })
-    return (...[ target, property ]: ClassDecoratorParams | MethodDecoratorParams) => {
-        guard(_.isString(property), `property key must be string`)
-        if (property) {
-            set(storage, `controllers.${(target as Object).constructor.name}.${property as string}.consumes`, mimeTypes)
-        } else {
-            set(storage, `controllers.${(target as Function).name}.${property}.consumes`, mimeTypes)
-        }
+    return (...[target, property]: ClassDecoratorParams | MethodDecoratorParams) => {
+        guard(_.isUndefined(property) || _.isString(property), `property key must be string if exists`)
+        const mergeOption = { ...defaultOption, ...option }
+        // TODO
+        // guard(
+        //     (_.isString(mergeOption.name) && isPrimitiveType(mergeOption.type)) ||
+        //         (_.isNil(mergeOption.name) && !isPrimitiveType(mergeOption.type)),
+        //     `@ApiHeader option incorrect: only accepts name={string} type={PrimitiveType} or name=undefined type={CustomType}`
+        // )
+        const path = property
+            ? `controllers.${(target as Object).constructor.name}.handlers.${property as string}.parameters`
+            : `controllers.${(target as Function).name}.parameters`
+        set(storage, path, [{ in: ParameterLocation.HEADERS, ...mergeOption }])
     }
 }

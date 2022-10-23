@@ -1,5 +1,4 @@
 import { Class } from './common/type-fest'
-import { OpenAPI } from './common/open-api/openapi-spec-v3.1.0'
 
 export type Type = Class
 

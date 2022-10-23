@@ -5,11 +5,9 @@ import { storage } from '../storage'
 
 export function ApiConsumes(...mimeTypes: string[]) {
     return (...[ target, property ]: ClassDecoratorParams | MethodDecoratorParams) => {
-        guard(_.isString(property), `property key must be string`)
-        if (property) {
-            set(storage, `controllers.${(target as Object).constructor.name}.${property as string}.consumes`, mimeTypes)
-        } else {
-            set(storage, `controllers.${(target as Function).name}.${property}.consumes`, mimeTypes)
-        }
+        guard(_.isUndefined(property) || _.isString(property), `property key must be string if exists`)
+        const path = property ? `controllers.${(target as Object).constructor.name}.handlers.${property as string}.consumes` :
+            `controllers.${(target as Function).name}.consumes`
+        set(storage, path, mimeTypes)
     }
 }

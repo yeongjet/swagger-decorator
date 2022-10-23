@@ -1,121 +1,126 @@
 {
     "models": {
-        "Person": {
-            "properties": [
-                {
-                    "name": "name",
-                    "required": true,
-                    "schema": {}
-                },
-                {
-                    "name": "age",
-                    "required": true,
-                    "schema": {}
-                }
-            ]
+        "PersonApiParam": {
+            "name": {
+                "required": true
+            },
+            "age": {
+                "required": true
+            }
         },
-        "Company": {
-            "properties": [
-                {
-                    "name": "address",
-                    "required": true,
-                    "schema": {}
-                }
-            ]
+        "PersonApiHeader": {
+            "firstname": {
+                "required": true
+            },
+            "age": {
+                "required": true
+            }
         },
-        "Home": {
-            "properties": [
-                {
-                    "name": "postcode",
-                    "required": true,
-                    "schema": {}
-                },
-                {
-                    "name": "street",
-                    "required": true,
-                    "schema": {}
-                }
-            ]
+        "PersonApiQuery": {
+            "firstname": {
+                "required": true
+            },
+            "age": {
+                "required": true
+            }
+        },
+        "PersonBody": {
+            "firstname": {
+                "required": true
+            },
+            "age": {
+                "required": true
+            }
+        },
+        "CompanyParam": {
+            "address": {
+                "required": true
+            }
+        },
+        "HomeHeader": {
+            "postcode": {
+                "required": true
+            },
+            "street": {
+                "required": true
+            }
         }
     },
     "controllers": {
         "CatsController": {
-            "routes": [
-                {
-                    "name": "create",
-                    "responses": {
-                        "status": 403,
-                        "description": "Forbidden.",
-                        "schema": {}
-                    },
-                    "queries": [
+            "handlers": {
+                "create": {
+                    "consumes": [
+                        "aaa/x-www-form-urlencoded"
+                    ],
+                    "responses": [
                         {
-                            "required": true,
-                            "schema": {}
+                            "status": 403,
+                            "isArray": false,
+                            "description": "Forbidden."
                         }
                     ],
-                    "headers": [
+                    "parameters": [
                         {
-                            "required": true,
-                            "name": "ddd",
-                            "schema": {
-                                "enum": [
-                                    "Country",
-                                    "Province",
-                                    "User"
-                                ]
-                            }
-                        }
-                    ],
-                    "params": [
+                            "in": "query",
+                            "required": true
+                        },
                         {
+                            "in": "query",
                             "required": true,
-                            "name": "hello",
-                            "schema": {}
+                            "name": "ApiQuery_(type:basic)"
+                        },
+                        {
+                            "in": "header",
+                            "required": true
+                        },
+                        {
+                            "in": "header",
+                            "required": true,
+                            "name": "ApiHeader_(type:no)"
+                        },
+                        {
+                            "in": "path",
+                            "required": true
+                        },
+                        {
+                            "in": "path",
+                            "required": true,
+                            "name": "ApiParam_(type:basic)"
                         }
                     ],
                     "body": {
-                        "required": true,
-                        "schema": {}
-                    }
-                },
-                {
-                    "name": "findOne",
-                    "responses": {
-                        "status": 200,
-                        "description": "The found record",
-                        "schema": {
-                            "type": [
-                                null
-                            ]
-                        }
+                        "isArray": false,
+                        "required": true
                     }
                 }
-            ],
+            },
             "consumes": [
-                [
-                    "ddd/x-www-form-urlencoded"
-                ]
+                "ddd/x-www-form-urlencoded"
             ],
-            "headers": [
+            "parameters": [
                 {
+                    "in": "header",
                     "required": true,
                     "name": "kkk",
-                    "schema": {
-                        "enum": [
-                            "Admin",
-                            "Moderator",
-                            "User"
-                        ]
+                    "enum": {
+                        "0": "Admin",
+                        "1": "Moderator",
+                        "2": "User",
+                        "Admin": 0,
+                        "Moderator": 1,
+                        "User": 2
                     }
                 }
             ],
             "tags": [
                 "cats"
             ],
-            "security": {
-                "bearer": []
-            }
+            "security": [
+                {
+                    "bearer": []
+                }
+            ]
         }
     }
 }

@@ -1,12 +1,16 @@
 import _ from 'lodash'
 import { StatusCodes } from 'http-status-codes'
 import { SetOptional } from 'type-fest'
-import { Response, Type } from '../storage'
-import { createClassMethodDecorator } from '../builder'
-import { wrapArray } from '../util'
+import { guard, set } from '../util'
+import { ResponseObject } from '../common/open-api'
+import { Type, storage } from '../storage'
 import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
 
-export type ApiResponseOption = Omit<SetOptional<Response, 'status'>, 'schema'> & { type?: Type, isArray?: boolean }
+export interface ApiResponseOption extends Omit<SetOptional<ResponseObject, 'description'>, 'content'> {
+    type?: Type
+    isArray?: boolean
+    status?: StatusCodes
+}
 
 const defaultOption = {
     status: StatusCodes.OK,
@@ -14,9 +18,12 @@ const defaultOption = {
 }
 
 export function ApiResponse(option: ApiResponseOption): MethodDecorator & ClassDecorator {
-    const { type, isArray, ...processless } = { ...defaultOption, ...option }
-    const schema = type ? wrapArray(type, isArray) : {}
-    return createClassMethodDecorator({ responses: { ...processless, schema }})
+    return (...[ target, property ]: ClassDecoratorParams | MethodDecoratorParams) => {
+        guard(_.isString(property), `property key must be string`)
+        const path = property ? `controllers.${(target as Object).constructor.name}.handlers.${property as string}.responses` : 
+            `controllers.${(target as Function).name}.responses`
+        set(storage, path, [{ ...defaultOption, ...option }])
+    }
 }
 
 export const ApiOkResponse = (option?: ApiResponseOption) => ApiResponse({ ...option, status: StatusCodes.OK })
