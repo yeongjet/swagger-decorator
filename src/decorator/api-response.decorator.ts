@@ -8,13 +8,11 @@ import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
 
 export interface ApiResponseOption extends Omit<SetOptional<ResponseObject, 'description'>, 'content'> {
     type?: Type
-    isArray?: boolean
     status?: StatusCodes
 }
 
 const defaultOption = {
     status: StatusCodes.OK,
-    isArray: false
 }
 
 export function ApiResponse(option: ApiResponseOption): MethodDecorator & ClassDecorator {

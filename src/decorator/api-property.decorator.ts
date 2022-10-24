@@ -28,11 +28,11 @@ export function ApiProperty(option: ApiPropertyOption = {}): PropertyDecorator {
     return (...[ target, property ]: PropertyDecoratorParams) => {
         guard(_.isString(property), `property name must be string`)
         const type = Reflect.getMetadata('design:type', target, property as string)
-        set(storage, `models.${target.constructor.name}.${property as string}`, { type, ...defaultOption, ...option })
+        set(storage, `components.${target.constructor.name}.${property as string}`, { type, ...defaultOption, ...option })
     }
 }
 
-export function ApiPropertyOptional(option: ApiPropertyOption) {
+export function ApiPropertyOptional(option: ApiPropertyOption = {}) {
     return ApiProperty({ ...option, required: false })
 }
 

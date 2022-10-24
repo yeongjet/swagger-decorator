@@ -1,47 +1,10 @@
 {
-    "models": {
-        "PersonApiParam": {
-            "name": {
-                "required": true
-            },
-            "age": {
-                "required": true
-            }
-        },
-        "PersonApiHeader": {
-            "firstname": {
-                "required": true
-            },
-            "age": {
-                "required": true
-            }
-        },
-        "PersonApiQuery": {
-            "firstname": {
-                "required": true
-            },
-            "age": {
-                "required": true
-            }
-        },
+    "components": {
         "PersonBody": {
             "firstname": {
                 "required": true
             },
             "age": {
-                "required": true
-            }
-        },
-        "CompanyParam": {
-            "address": {
-                "required": true
-            }
-        },
-        "HomeHeader": {
-            "postcode": {
-                "required": true
-            },
-            "street": {
                 "required": true
             }
         }
@@ -50,13 +13,9 @@
         "CatsController": {
             "handlers": {
                 "create": {
-                    "consumes": [
-                        "aaa/x-www-form-urlencoded"
-                    ],
                     "responses": [
                         {
                             "status": 403,
-                            "isArray": false,
                             "description": "Forbidden."
                         }
                     ],
@@ -95,9 +54,6 @@
                     }
                 }
             },
-            "consumes": [
-                "ddd/x-www-form-urlencoded"
-            ],
             "parameters": [
                 {
                     "in": "header",

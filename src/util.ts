@@ -13,9 +13,9 @@ export function enumToArray(enums: Enum): { itemType: Number | String; items: nu
     return { itemType, items }
 }
 
-export function getSchemaPath(model: string | Function): string {
-    const modelName = _.isString(model) ? model : model && model.name
-    return `#/components/schemas/${modelName}`
+export function getSchemaPath(component: string | Function): string {
+    const componentName = _.isString(component) ? component : component && component.name
+    return `#/components/schemas/${componentName}`
 }
 
 export const isContain = (first: object, second: object) => {
@@ -50,6 +50,12 @@ export const set = (obj: any, path: string, item: any) => {
     } else {
         _.set(obj, path, item)
     }
+}
+
+export const remove = (obj: any, key) => {
+    const result = obj[key]
+    delete obj[key]
+    return result
 }
 
 export const wrapBrace = (url: string) => {

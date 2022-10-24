@@ -1,10 +1,9 @@
-import _, { pick } from 'lodash'
+import _ from 'lodash'
 import fs from 'fs'
 import { Type, storage } from '../storage'
 import { OpenAPI } from '../common/open-api'
-import { warning, isPrimitiveType, wrapBrace, set, enumToArray } from '../util'
+import { warning, isPrimitiveType, wrapBrace, set, enumToArray, remove } from '../util'
 import { ParameterLocation } from '../common'
-import { PrimitiveClass } from '../common/type-fest'
 import TypeFest from 'type-fest'
 
 type BindingParameter = { name?: string; in: `${ParameterLocation}`; type: Type }
@@ -19,8 +18,7 @@ export type BuildDocumentOption = {
 }
 
 const transformTypeToSchema = (parameter: any) => {
-
-    let schema: Record<string, any> = {}
+    let schema: Record<string, any> = _.pick(parameter, 'required')
     if (!_.isNil(parameter.type)) {
         const isArray = _.isArray(parameter.type)
         const type = isArray ? parameter.type.at(0) : parameter.type
@@ -40,17 +38,18 @@ const transformTypeToSchema = (parameter: any) => {
         }
     } else if (!_.isNil(parameter.enum)) {
         const { itemType, items } = enumToArray(parameter.enum)
-        schema = { type: itemType, enum: items }
+        schema.type = itemType
+        schema.enum = items
     }
     return schema
 }
 
-const transformParameterType = (models: any, parameter: any) => {
+const transformParameterType = (component: any, parameter: any) => {
     let result: any = []
     if (isPrimitiveType(parameter.type)) {
         result.push({ ..._.pick(parameter, 'name', 'in', 'required'), schema: transformTypeToSchema(parameter) })
     } else {
-        for(const [ propertyName, propertyValue ] of Object.entries(models[(parameter.type as TypeFest.Class<any>).name]) as any) {
+        for(const [ propertyName, propertyValue ] of Object.entries(component) as any) {
             result.push({ name: propertyName, ..._.pick(parameter, 'in', 'required'), ..._.pick(propertyValue, 'required'), schema: transformTypeToSchema(propertyValue) })
         }
     }
@@ -65,36 +64,34 @@ const transformParameterType = (models: any, parameter: any) => {
 // @ApiBody name:无 type: object
 
 // handle @Headers() @Param() @Query() @Headers('xx') @Param('xx') @Query('xx') @ApiHeader({ name: 'xx' }) @ApiParam({ name: 'xx' }) @ApiQuery() @ApiQuery({ name: 'xx' })
-const generateParameterObject = (models: any, bindingParameters: BindingParameter[], storageParameters: any) => {
-    // handle @Headers('xx') @Param('xx') @Query('xx') in bindingParams
+const generateParametersObject = (components: any, bindingParameters: BindingParameter[], storageParameters: any) => {
     const [ unnamedBindingParameters, namedBindingParameters ] = _.partition(bindingParameters.filter(n => n.type !== Object && n.in !== ParameterLocation.BODY), n => _.isNil(n.name)) as [UnnamedBindingParameter[], NamedBindingParameter[]]
-    // handle @Header() @Query() @Param() in bindingParams
     _.filter(unnamedBindingParameters, n => !isPrimitiveType(n.type)).map(n => {
-        for(const [ propertyName, propertyValue ] of Object.entries(models[(n.type as TypeFest.Class<any>).name]) as any) {
+        const componentName = (n.type as TypeFest.Class<any>).name
+        const component = remove(components, componentName)
+        for(const [ propertyName, propertyValue ] of Object.entries(component) as any) {
             if (!isPrimitiveType(propertyValue.type)) {
-                warning(`properties(${propertyName}) in ${(n.type as TypeFest.Class<any>).name} will be ignored`)
+                warning(`properties(${propertyName}) in ${componentName} will be ignored`)
                 continue
             }
             namedBindingParameters.push({ name: propertyName, in: n.in, type: propertyValue.type, required: propertyValue.required })
         }
     })
-    // all items in namedMetadataWithSchema has name, merge paramsMetadata and storageParams
-    const namedStorageParameters = _.flatten(storageParameters.map(n => _.isNil(n.name) ? transformParameterType(models, n) : n))
-    // merge @ApiHeader({ name: 'xx' }) @ApiParam({ name: 'xx' }) @ApiQuery({ name: 'xx' }) into binding parameters
+    const namedStorageParameters = _.flatten(storageParameters.map(n => _.isNil(n.name) ? transformParameterType(remove(components, n.type.name), n) : n))
     const result = _.flatten(namedBindingParameters.map(bindingParam => {
         const [ namedStorageParam ] = _.remove(namedStorageParameters, { name: bindingParam.name, in: bindingParam.in })
         if (namedStorageParam) {
             Object.assign(bindingParam, namedStorageParam)
         }
-        return transformParameterType(models, bindingParam)
+        return transformParameterType(remove(components, (bindingParam.type as TypeFest.Class<any>).name), bindingParam)
     })).concat(namedStorageParameters)
     return result
 }
 
 // handle @ApiBody({ type: xx }) @Body() @Body('xx')
-const generateRequestBodyObject = (bindingParameters: BindingParameter[], storageBody: any, consumes: string[] = ['application/json']) => {
+const generateRequestBodyObject = (bindingParameters: BindingParameter[], storageBody: any, consumes: string[]) => {
     const body = storageBody ?? bindingParameters.find(n => n.type !== Object && !(!_.isNil(n.name) && n.in === ParameterLocation.BODY))
-    if (!body) {
+    if (_.isEmpty(body)) {
         return
     }
     const content = consumes.reduce((acc, item) => ({
@@ -109,6 +106,42 @@ const generateRequestBodyObject = (bindingParameters: BindingParameter[], storag
     return {..._.pick(body, 'description', 'required'), content }
 }
 
+const generateResponsesObject = (storageResponse: any, produces: string[]) => {
+    return produces.reduce((pacc, pitem: any) => {
+        const response = { ...pacc, [pitem.status]: _.pick(pitem, 'description', 'headers', 'links') }
+        if (pitem.type) {
+            const content = produces.reduce((acc, item) => ({
+                ...acc,
+                [item]: {
+                    ..._.pick(storageResponse, 'example', 'examples'),
+                    schema: {
+                        $ref: `#/components/schemas/${pitem?.type.constructor.name}`
+                    }
+                }
+            }), {})
+            Object.assign(response, content)
+        }
+        return response
+    }, {})
+}
+
+const generateComponentsObject = (storageComponents: any) => {
+    const components = {}
+    for(const [ componentName, componentProperty ] of Object.entries(storageComponents)) {
+        for(const [ propertyName, propertyValue ] of Object.entries(componentProperty as any)) {
+            set(components, `schema.${componentName}.properties.${propertyName}`, transformTypeToSchema(propertyValue))
+        }
+        const required = _.reduce(componentProperty as any, (acc, value, key) => {
+            if (value.required) {
+              acc.concat(key);
+            }
+            return acc;
+          }, [] as string[]);
+        set(components, `schema.${componentName}.required`, required)
+        console.log(componentName)
+    }
+    return components
+}
 
 export const buildDocument = (option: BuildDocumentOption) => {
     const { routePrefixGetter, routeBindingGetter, title, version } = option
@@ -123,21 +156,18 @@ export const buildDocument = (option: BuildDocumentOption) => {
     for (const [controllerName, controllerStorage] of Object.entries(storage.controllers) as any) {
         const routePrefix = routePrefixGetter ? routePrefixGetter(controllerName) : ''
         for (const [handlerName, handlerStorage] of Object.entries(controllerStorage.handlers) as any) {
+            const consumes = handlerStorage.consumes || controllerStorage.consumes || ['application/json']
+            const produces = handlerStorage.produces || controllerStorage.produces || ['application/json']
             const routeBinding = routeBindingGetter(controllerName, handlerName)
-            const routePath = routePrefix + wrapBrace(routeBinding.url)
-            let parameters: any, requestBody: any
-            if (routeBinding.parameters) {
-                const consumes = _.uniq([ ...controllerStorage.consumes, ...handlerStorage.consumes ])
-                parameters = generateParameterObject(storage.models, routeBinding.parameters, handlerStorage.parameters)
-                requestBody = generateRequestBodyObject(routeBinding.parameters, handlerStorage.body, consumes)
-            }
+            const parameters = generateParametersObject(storage.components, routeBinding.parameters || [], handlerStorage.parameters || [])
+            const requestBody = generateRequestBodyObject(routeBinding.parameters || [], handlerStorage.body, consumes)
+            const responses = generateResponsesObject(handlerStorage.responses, produces)
             const httpMethod = routeBinding.httpMethod.toLowerCase()
-            set(doc, `paths.${routePath}.${httpMethod}`, _.omitBy({
-                parameters, requestBody,
-                ..._.pick(controllerStorage, 'tags', 'responses', 'security'),
-                ..._.pick(handlerStorage, 'responses') }, _.isNil))
+            const routePath = routePrefix + wrapBrace(routeBinding.url)
+            set(doc, `paths.${routePath}.${httpMethod}`, _.omitBy({ parameters, requestBody, responses, ..._.pick(controllerStorage, 'tags', 'security')}, _.isEmpty))
         }
     }
+    set(doc, `components`, generateComponentsObject(storage.components))
     fs.writeFileSync('out.json', JSON.stringify(storage, null, 4))
     return
 }

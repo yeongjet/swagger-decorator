@@ -9,7 +9,9 @@ import {
   ApiHeader,
   ApiConsumes,
   ApiParam,
-  ApiProperty
+  ApiProperty,
+  ApiProduces,
+  ApiPropertyOptional
 } from '../../src';
 import { CatsService } from './cats.service'
 import { ApiBodyDto, CreateCatDto } from './dto/create-cat.dto'
@@ -52,7 +54,7 @@ class PersonApiQuery {
 class PersonBody {
   @ApiProperty()
   firstname: string
-  @ApiProperty()
+  @ApiPropertyOptional()
   age: number
 }
 
@@ -73,7 +75,8 @@ class HomeHeader {
 @ApiTags('cats')
 @Controller('cats')
 @ApiHeader({ name: 'kkk', enum: UserRole })
-@ApiConsumes('ddd/x-www-form-urlencoded')
+// @ApiConsumes('ddd/x-www-form-urlencoded')
+// @ApiProduces('ddd/x-www-form-urlencoded')
 export class CatsController {
   // constructor(private readonly catsService: CatsService) {}
 
@@ -88,7 +91,8 @@ export class CatsController {
   @ApiQuery({ name: 'ApiQuery_(type:basic)', type: String })
   @ApiQuery({ type: PersonApiQuery })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  @ApiConsumes('aaa/x-www-form-urlencoded')
+  // @ApiConsumes('aaa/x-www-form-urlencoded')
+  // @ApiProduces('aaa/x-www-form-urlencoded')
   async create(@Body() createCatDto: PersonBody, @Body('body_hasname') createCompanyDto: PersonBody, @Param('he') param: CompanyParam, @Headers() header: HomeHeader, @IP() ip) {
     // return this.catsService.create(createCatDto);
   }
