@@ -131,14 +131,8 @@ const generateComponentsObject = (storageComponents: any) => {
         for(const [ propertyName, propertyValue ] of Object.entries(componentProperty as any)) {
             set(components, `schema.${componentName}.properties.${propertyName}`, transformTypeToSchema(propertyValue))
         }
-        const required = _.reduce(componentProperty as any, (acc, value, key) => {
-            if (value.required) {
-              acc.concat(key);
-            }
-            return acc;
-          }, [] as string[]);
+        const required = _.reduce(componentProperty as any, (acc, value, key) => value.required ? acc.concat(key) : acc, [] as string[]);
         set(components, `schema.${componentName}.required`, required)
-        console.log(componentName)
     }
     return components
 }
@@ -168,6 +162,6 @@ export const buildDocument = (option: BuildDocumentOption) => {
         }
     }
     set(doc, `components`, generateComponentsObject(storage.components))
-    fs.writeFileSync('out.json', JSON.stringify(storage, null, 4))
-    return
+    fs.writeFileSync('out.json', JSON.stringify(doc, null, 4))
+    return doc
 }

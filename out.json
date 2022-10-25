@@ -1,82 +1,151 @@
 {
-    "components": {
-        "PersonBody": {
-            "firstname": {
-                "required": true
-            },
-            "age": {
-                "required": true
+    "openapi": "3.1.0",
+    "info": {
+        "title": "",
+        "version": ""
+    },
+    "paths": {
+        "/cats/sd": {
+            "post": {
+                "parameters": [
+                    {
+                        "name": "address",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "required": true,
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "postcode",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "required": true,
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "street",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "required": true,
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "firstname",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "required": true,
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "age",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "required": true,
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "required": true,
+                        "name": "ApiQuery_(type:basic)"
+                    },
+                    {
+                        "name": "firstname",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "required": true,
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "age",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "required": true,
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "ApiHeader_(type:no)"
+                    },
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "required": true,
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "age",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "required": true,
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "ApiParam_(type:basic)"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Function"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "undefined": {}
+                },
+                "tags": [
+                    "cats"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
             }
         }
     },
-    "controllers": {
-        "CatsController": {
-            "handlers": {
-                "create": {
-                    "responses": [
-                        {
-                            "status": 403,
-                            "description": "Forbidden."
-                        }
-                    ],
-                    "parameters": [
-                        {
-                            "in": "query",
-                            "required": true
-                        },
-                        {
-                            "in": "query",
-                            "required": true,
-                            "name": "ApiQuery_(type:basic)"
-                        },
-                        {
-                            "in": "header",
-                            "required": true
-                        },
-                        {
-                            "in": "header",
-                            "required": true,
-                            "name": "ApiHeader_(type:no)"
-                        },
-                        {
-                            "in": "path",
-                            "required": true
-                        },
-                        {
-                            "in": "path",
-                            "required": true,
-                            "name": "ApiParam_(type:basic)"
-                        }
-                    ],
-                    "body": {
-                        "isArray": false,
-                        "required": true
+    "components": {
+        "schema": {
+            "PersonBody": {
+                "properties": {
+                    "firstname": {
+                        "required": true,
+                        "type": "string"
+                    },
+                    "age": {
+                        "required": false,
+                        "type": "number"
                     }
-                }
-            },
-            "parameters": [
-                {
-                    "in": "header",
-                    "required": true,
-                    "name": "kkk",
-                    "enum": {
-                        "0": "Admin",
-                        "1": "Moderator",
-                        "2": "User",
-                        "Admin": 0,
-                        "Moderator": 1,
-                        "User": 2
-                    }
-                }
-            ],
-            "tags": [
-                "cats"
-            ],
-            "security": [
-                {
-                    "bearer": []
-                }
-            ]
+                },
+                "required": [
+                    "firstname"
+                ]
+            }
         }
     }
 }

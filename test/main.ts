@@ -17,12 +17,11 @@ const transformParams = (params: Storage.Param[]) => {
 }
 
 ;(async () => {
-    const aaaaa = buildDocument({
+    const doc = buildDocument({
         routePrefixGetter: (controllerName) => storage.getController(controllerName).prefix,
         routeBindingGetter: (controllerName, routeName) => {
             const { requestMethod, url, params } = storage.getRoute(controllerName, routeName)
             return { httpMethod: HttpMethod[requestMethod], url, parameters: transformParams(params) }
         }
     })
-    console.log(aaaaa)
 })()
