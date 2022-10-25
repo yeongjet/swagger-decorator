@@ -1,22 +1,16 @@
 import _ from 'lodash'
 import { guard, set } from '../util'
 import { MethodDecoratorParams } from '../builder'
-import { Enum, storage } from '../storage'
-import { Class, SetRequired } from 'type-fest'
-import { ExampleObject, ReferenceObject } from '../common/open-api'
+import { storage } from '../storage'
+import { Type } from '../common/type'
 
 export interface ApiBodyOption {
-    type: Class<object>
-    enum?: Enum
-    isArray?: boolean
+    type: Type
     description?: string
     required?: boolean
-    example?: any
-    examples?: Record<string, ExampleObject | ReferenceObject>
 }
 
-const defaultOption: SetRequired<Omit<ApiBodyOption, 'type'>, 'isArray'> = {
-    isArray: false,
+const defaultOption: Omit<ApiBodyOption, 'type'> = {
     required: true
 }
 

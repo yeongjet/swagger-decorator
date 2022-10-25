@@ -1,2 +1,2 @@
 export * from './merge-exclusive'
-export * from './primitive'
+export * from './basic-type'

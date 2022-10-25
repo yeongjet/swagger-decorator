@@ -1,42 +1,43 @@
 import _ from 'lodash'
-import { guard, isPrimitiveType, set } from '../util'
-import { Enum, Type, storage } from '../storage'
+import { guard, set } from '../util'
+import { storage } from '../storage'
 import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
-import { ExampleObject, ReferenceObject, Content } from '../common/open-api'
-import { ParameterLocation } from '../common'
+import { Examples, ParameterStyle } from '../common/open-api'
+import { ParameterLocation, Enum, Primitive } from '../common'
 
 export interface ApiHeaderOption {
-    type?: Type
-    format?: string
+    name: string
+    type?: Primitive
     enum?: Enum
-    name?: string
     description?: string
     required?: boolean
     deprecated?: boolean
     allowEmptyValue?: boolean
+    style?: ParameterStyle
     explode?: boolean
     allowReserved?: boolean
-    examples?: Record<string, ExampleObject | ReferenceObject>
     example?: any
+    examples?: Examples
 }
 
 const defaultOption: Partial<ApiHeaderOption> = {
     required: true
 }
 
-export function ApiHeader(option: ApiHeaderOption) {
+export function ApiHeader(receivedOption: ApiHeaderOption) {
     return (...[target, property]: ClassDecoratorParams | MethodDecoratorParams) => {
-        guard(_.isUndefined(property) || _.isString(property), `property key must be string if exists`)
-        const mergeOption = { ...defaultOption, ...option }
-        // TODO
-        // guard(
-        //     (_.isString(mergeOption.name) && isPrimitiveType(mergeOption.type)) ||
-        //         (_.isNil(mergeOption.name) && !isPrimitiveType(mergeOption.type)),
-        //     `@ApiHeader option incorrect: only accepts name={string} type={PrimitiveType} or name=undefined type={CustomType}`
-        // )
+        guard(_.isUndefined(property) || _.isString(property), `property key must be string`)
+        const option = { ...defaultOption, ...receivedOption }
+        guard(
+            (_.isNil(option.type) && !_.isNil(option.enum)) ||
+            (!_.isNil(option.type) && _.isNil(option.enum)),
+            `@ApiHeader option incorrect which accepts:
+                1.type={Primitive} enum=undefined
+                2.type=undefined enum={Enum}`
+        )
         const path = property
             ? `controllers.${(target as Object).constructor.name}.handlers.${property as string}.parameters`
             : `controllers.${(target as Function).name}.parameters`
-        set(storage, path, [{ in: ParameterLocation.HEADERS, ...mergeOption }])
+        set(storage, path, [{ in: ParameterLocation.HEADERS, ...option }])
     }
 }

@@ -1,9 +1,9 @@
 import _ from 'lodash'
-import { Enum, Type, storage } from '../storage'
-import { guard, isPrimitiveType, set } from '../util'
-import { ParameterStyle, ExampleObject, ReferenceObject, Content } from '../common/open-api'
+import { storage } from '../storage'
+import { guard, isPrimitive, set } from '../util'
+import { ParameterStyle, Examples } from '../common/open-api'
 import { MethodDecoratorParams } from '../builder'
-import { ParameterLocation } from '../common'
+import { Enum, Type, ParameterLocation } from '../common'
 
 export interface ApiQueryOption {
     type?: Type
@@ -16,8 +16,8 @@ export interface ApiQueryOption {
     style?: ParameterStyle
     explode?: boolean
     allowReserved?: boolean
-    examples?: Record<string, ExampleObject | ReferenceObject>
     example?: any
+    examples?: Examples
 }
 
 const defaultOption: ApiQueryOption = {
@@ -29,8 +29,8 @@ export function ApiQuery(option: ApiQueryOption): MethodDecorator {
         guard(_.isString(property), `property key must be string`)
         const mergeOption = { ...defaultOption, ...option }
         guard(
-            (_.isString(mergeOption.name) && isPrimitiveType(mergeOption.type)) ||
-                (_.isNil(mergeOption.name) && !isPrimitiveType(mergeOption.type)),
+            (_.isString(mergeOption.name) && isPrimitive(mergeOption.type)) ||
+                (_.isNil(mergeOption.name) && !isPrimitive(mergeOption.type)),
             `@ApiQuery option incorrect: only accepts name={string} type={PrimitiveType} or name=undefined type={CustomType}`
         )
         set(storage, `controllers.${(target as Object).constructor.name}.handlers.${property as string}.parameters`, [

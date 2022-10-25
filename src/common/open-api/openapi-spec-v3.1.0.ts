@@ -113,7 +113,7 @@ export interface ParameterObject {
     content?: Content // A map containing the representations for the parameter. The key is the media type and the value describes it. The map MUST only contain one entry.
 }
 
-// Reference: https://json-schema.org/draft/2020-12/json-schema-validation.html
+// References: https://json-schema.org/draft/2020-12/json-schema-validation.html
 //            https://json-schema.org/draft/2020-12/json-schema-core.html
 export interface SchemaObject {
     // (From: json-schema-validation) Validation Keywords for Any Instance Type
@@ -208,7 +208,7 @@ export interface RequestBodyObject {
 export interface MediaTypeObject {
     schema?: SchemaObject // The schema defining the content of the request, response, or parameter.
     example?: any // Example of the media type. The example object SHOULD be in the correct format as specified by the media type. The example field is mutually exclusive of the examples field. Furthermore, if referencing a schema which contains an example, the example value SHALL override the example provided by the schema.
-    examples?: Record<string, ExampleObject | ReferenceObject> // Examples of the media type. Each example object SHOULD match the media type and specified schema if present. The examples field is mutually exclusive of the example field. Furthermore, if referencing a schema which contains an example, the examples value SHALL override the example provided by the schema.
+    examples?: Examples // Examples of the media type. Each example object SHOULD match the media type and specified schema if present. The examples field is mutually exclusive of the example field. Furthermore, if referencing a schema which contains an example, the examples value SHALL override the example provided by the schema.
     encoding?: Record<string, EncodingObject> // A map between a property name and its encoding information. The key, being the property name, MUST exist in the schema as a property. The encoding object SHALL only apply to requestBody objects when the media type is multipart or application/x-www-form-urlencoded.
 }
 
@@ -257,7 +257,7 @@ export interface ComponentsObject {
     schemas?: Record<string, SchemaObject> // An object to hold reusable Schema Objects.
     responses?: Record<string, ResponseObject | ReferenceObject> // An object to hold reusable Response Objects.
     parameters?: Record<string, ParameterObject | ReferenceObject> // An object to hold reusable Parameter Objects.
-    examples?: Record<string, ExampleObject | ReferenceObject> // An object to hold reusable Example Objects.
+    examples?: Examples // An object to hold reusable Example Objects.
     requestBodies?: Record<string, RequestBodyObject | ReferenceObject> // An object to hold reusable Request Body Objects.
     headers?: Record<string, HeaderObject | ReferenceObject> // An object to hold reusable Header Objects.
     securitySchemes?: Record<string, SecuritySchemeObject | ReferenceObject> // An object to hold reusable Security Scheme Objects.
@@ -297,6 +297,8 @@ export interface TagObject {
     externalDocs?: ExternalDocumentationObject // Additional external documentation for this tag.
 }
 
+// custom type
 export type Content = Record<string, MediaTypeObject>
 export type ParameterLocation = 'query' | 'header' | 'path' | 'cookie'
 export type ParameterStyle = 'matrix' | 'label' | 'form' | 'simple' | 'spaceDelimited' | 'pipeDelimited' | 'deepObject'
+export interface Examples extends Record<string, ExampleObject | ReferenceObject> {}

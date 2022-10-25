@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { Enum, Type } from './storage'
-import { primitiveClass, PrimitiveClass } from './common/type-fest'
+import { primitiveClass, PrimitiveClass } from './common/type'
 
 export const wrapArray = (type: Type, isArray: boolean, array?: any[]) => {
     const items = array ? { type, enum: array } : { type }
@@ -29,7 +29,7 @@ export const isContain = (first: object, second: object) => {
 
 export const isValidKey = (name?: string) => _.isString(name) && name.length > 0
 
-export const isPrimitiveType = (type?: Type): type is PrimitiveClass => _.isFunction(type) && primitiveClass.some(n => n === type)
+export const isPrimitive = (type?: Type): type is PrimitiveClass => _.isFunction(type) && primitiveClass.some(n => n === type)
 
 export const negate = (value: boolean) => !value
 

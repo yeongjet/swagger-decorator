@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import fs from 'fs'
-import { Type, storage } from '../storage'
-import { OpenAPI } from '../common/open-api'
-import { warning, isPrimitiveType, wrapBrace, set, enumToArray, remove } from '../util'
-import { ParameterLocation } from '../common'
+import { storage } from '../storage'
+import { OpenAPI, RequestBodyObject } from '../common/open-api'
+import { warning, isPrimitive, wrapBrace, set, enumToArray, remove } from '../util'
+import { Type, ParameterLocation } from '../common'
 import TypeFest from 'type-fest'
 
 type BindingParameter = { name?: string; in: `${ParameterLocation}`; type: Type }
@@ -46,7 +46,7 @@ const transformTypeToSchema = (parameter: any) => {
 
 const transformParameterType = (component: any, parameter: any) => {
     let result: any = []
-    if (isPrimitiveType(parameter.type)) {
+    if (isPrimitive(parameter.type)) {
         result.push({ ..._.pick(parameter, 'name', 'in', 'required'), schema: transformTypeToSchema(parameter) })
     } else {
         for(const [ propertyName, propertyValue ] of Object.entries(component) as any) {
@@ -66,11 +66,11 @@ const transformParameterType = (component: any, parameter: any) => {
 // handle @Headers() @Param() @Query() @Headers('xx') @Param('xx') @Query('xx') @ApiHeader({ name: 'xx' }) @ApiParam({ name: 'xx' }) @ApiQuery() @ApiQuery({ name: 'xx' })
 const generateParametersObject = (components: any, bindingParameters: BindingParameter[], storageParameters: any) => {
     const [ unnamedBindingParameters, namedBindingParameters ] = _.partition(bindingParameters.filter(n => n.type !== Object && n.in !== ParameterLocation.BODY), n => _.isNil(n.name)) as [UnnamedBindingParameter[], NamedBindingParameter[]]
-    _.filter(unnamedBindingParameters, n => !isPrimitiveType(n.type)).map(n => {
+    _.filter(unnamedBindingParameters, n => !isPrimitive(n.type)).map(n => {
         const componentName = (n.type as TypeFest.Class<any>).name
         const component = remove(components, componentName)
         for(const [ propertyName, propertyValue ] of Object.entries(component) as any) {
-            if (!isPrimitiveType(propertyValue.type)) {
+            if (!isPrimitive(propertyValue.type)) {
                 warning(`properties(${propertyName}) in ${componentName} will be ignored`)
                 continue
             }
@@ -89,7 +89,7 @@ const generateParametersObject = (components: any, bindingParameters: BindingPar
 }
 
 // handle @ApiBody({ type: xx }) @Body() @Body('xx')
-const generateRequestBodyObject = (bindingParameters: BindingParameter[], storageBody: any, consumes: string[]) => {
+const generateRequestBodyObject = (bindingParameters: BindingParameter[], storageBody: any, consumes: string[]): RequestBodyObject | void => {
     const body = storageBody ?? bindingParameters.find(n => n.type !== Object && !(!_.isNil(n.name) && n.in === ParameterLocation.BODY))
     if (_.isEmpty(body)) {
         return
@@ -97,9 +97,8 @@ const generateRequestBodyObject = (bindingParameters: BindingParameter[], storag
     const content = consumes.reduce((acc, item) => ({
         ...acc,
         [item]: {
-            ..._.pick(body, 'example', 'examples'),
             schema: {
-                $ref: `#/components/schemas/${body?.type.constructor.name}`
+                $ref: `#/components/schemas/${body.type.constructor.name}`
             }
         }
     }), {})

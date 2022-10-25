@@ -1,7 +1,8 @@
 import _ from 'lodash'
-import { Enum, Type, storage } from '../storage'
+import { storage } from '../storage'
 import { guard, set } from '../util'
-import { ParameterStyle, ExampleObject, ReferenceObject, Content } from '../common/open-api'
+import { Enum, Type } from '../common'
+import { Examples, ParameterStyle } from '../common/open-api'
 import { PropertyDecoratorParams } from '../builder'
 
 export interface ApiPropertyOption {
@@ -15,9 +16,8 @@ export interface ApiPropertyOption {
     style?: ParameterStyle
     explode?: boolean
     allowReserved?: boolean
-    examples?: Record<string, ExampleObject | ReferenceObject>
     example?: any
-    content?: Content
+    examples?: Examples
 }
 
 const defaultOption: ApiPropertyOption = {
@@ -34,10 +34,4 @@ export function ApiProperty(option: ApiPropertyOption = {}): PropertyDecorator {
 
 export function ApiPropertyOptional(option: ApiPropertyOption = {}) {
     return ApiProperty({ ...option, required: false })
-}
-
-export function ApiResponseProperty(
-    option: Pick<ApiPropertyOption, 'type' | 'example' | 'enum' | 'deprecated'> = {}
-): PropertyDecorator {
-    return ApiProperty(option)
 }

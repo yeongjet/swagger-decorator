@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { guard, set } from '../util'
-import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
 import { storage } from '../storage'
+import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
 
 export function ApiProduces(...mimeTypes: string[]) {
     return (...[ target, property ]: ClassDecoratorParams | MethodDecoratorParams) => {
