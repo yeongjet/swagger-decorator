@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import fs from 'fs'
 import { storage } from '../storage'
-import { OpenAPI, RequestBodyObject } from '../common/open-api'
+import { OpenAPI, RequestBodyObject } from '../interface/open-api'
 import { warning, isPrimitive, wrapBrace, set, enumToArray, remove } from '../util'
-import { Type, ParameterLocation } from '../common'
+import { Type, ParameterLocation } from '../interface'
 import TypeFest from 'type-fest'
 
 type BindingParameter = { name?: string; in: `${ParameterLocation}`; type: Type }

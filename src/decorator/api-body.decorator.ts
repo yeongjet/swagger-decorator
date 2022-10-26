@@ -1,8 +1,7 @@
 import _ from 'lodash'
 import { guard, set } from '../util'
-import { MethodDecoratorParams } from '../builder'
+import { MethodDecoratorParams, Type } from '../interface'
 import { storage } from '../storage'
-import { Type } from '../common/type'
 
 export interface ApiBodyOption {
     type: Type

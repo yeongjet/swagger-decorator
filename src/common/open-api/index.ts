@@ -1,1 +1,0 @@
-export * from './openapi-spec-v3.1.0'

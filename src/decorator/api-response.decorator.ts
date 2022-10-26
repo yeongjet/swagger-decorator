@@ -1,26 +1,29 @@
 import _ from 'lodash'
 import { StatusCodes } from 'http-status-codes'
-import { SetOptional } from 'type-fest'
 import { guard, set } from '../util'
-import { ResponseObject } from '../common/open-api'
-import { Type, storage } from '../storage'
-import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
+import { storage } from '../storage'
+import { Type, ClassDecoratorParams, MethodDecoratorParams } from '../interface'
+import { Links } from '../interface/open-api'
 
-export interface ApiResponseOption extends Omit<SetOptional<ResponseObject, 'description'>, 'content'> {
+export interface ApiResponseOption {
     type?: Type
     status?: StatusCodes
+    description?: string
+    headers?: Headers
+    links?: Links
 }
 
 const defaultOption = {
     status: StatusCodes.OK,
 }
 
-export function ApiResponse(option: ApiResponseOption): MethodDecorator & ClassDecorator {
+export function ApiResponse(receivedOption: ApiResponseOption): MethodDecorator & ClassDecorator {
     return (...[ target, property ]: ClassDecoratorParams | MethodDecoratorParams) => {
         guard(_.isString(property), `property key must be string`)
+        const option = { ...defaultOption, ...receivedOption }
         const path = property ? `controllers.${(target as Object).constructor.name}.handlers.${property as string}.responses` : 
             `controllers.${(target as Function).name}.responses`
-        set(storage, path, [{ ...defaultOption, ...option }])
+        set(storage, path, [ option ])
     }
 }
 

@@ -1,4 +1,4 @@
 export * from './decorator'
 export * from './builder'
-export * from './common'
+export * from './interface'
 export * as storage from './storage'

@@ -1,15 +1,14 @@
 import _ from 'lodash'
-import { guard, isPrimitive, set } from '../util'
 import { storage } from '../storage'
-import { MethodDecoratorParams } from '../builder'
-import { Examples, ParameterStyle } from '../common/open-api'
-import { Type, Enum, ParameterLocation } from '../common'
+import { guard, set, isPrimitive } from '../util'
+import { Examples, ParameterStyle } from '../interface/open-api'
+import { Type, Enum, ParameterLocation, MethodDecoratorParams } from '../interface'
 
 export interface ApiParamOption {
     type?: Type
-    format?: string
     enum?: Enum
     name?: string
+    format?: string
     description?: string
     required?: boolean
     deprecated?: boolean

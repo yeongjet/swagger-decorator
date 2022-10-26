@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import { guard, set } from '../util'
 import { storage } from '../storage'
-import { ClassDecoratorParams, MethodDecoratorParams } from '../builder'
-import { Examples, ParameterStyle } from '../common/open-api'
-import { ParameterLocation, Enum, Primitive } from '../common'
+import { ClassDecoratorParams, MethodDecoratorParams } from '../interface'
+import { Examples, ParameterStyle } from '../interface/open-api'
+import { ParameterLocation, Enum, Primitive } from '../interface'
 
 export interface ApiHeaderOption {
     name: string
@@ -39,5 +39,11 @@ export function ApiHeader(receivedOption: ApiHeaderOption) {
             ? `controllers.${(target as Object).constructor.name}.handlers.${property as string}.parameters`
             : `controllers.${(target as Function).name}.parameters`
         set(storage, path, [{ in: ParameterLocation.HEADERS, ...option }])
+    }
+}
+
+export const ApiHeaders = (...headers: ApiHeaderOption[]) => {
+    return (...params: ClassDecoratorParams | MethodDecoratorParams): any => {
+        headers.forEach(header => ApiHeader(header)(...params))
     }
 }

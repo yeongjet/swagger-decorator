@@ -109,7 +109,7 @@ export interface ParameterObject {
     allowReserved?: boolean // Determines whether the parameter value SHOULD allow reserved characters, as defined by [RFC3986] :/?#[]@!$&'()*+,;= to be included without percent-encoding. This property only applies to parameters with an in value of query. The default value is false.
     schema?: SchemaObject // The schema defining the type used for the parameter.
     example?: any // Example of the parameter’s potential value. The example SHOULD match the specified schema and encoding properties if present. The example field is mutually exclusive of the examples field. Furthermore, if referencing a schema that contains an example, the example value SHALL override the example provided by the schema. To represent examples of media types that cannot naturally be represented in JSON or YAML, a string value can contain the example with escaping where necessary.
-    examples?: Record<string,  ExampleObject | ReferenceObject> // Examples of the parameter’s potential value. Each example SHOULD contain a value in the correct format as specified in the parameter encoding. The examples field is mutually exclusive of the example field. Furthermore, if referencing a schema that contains an example, the examples value SHALL override the example provided by the schema.
+    examples?: Examples // Examples of the parameter’s potential value. Each example SHOULD contain a value in the correct format as specified in the parameter encoding. The examples field is mutually exclusive of the example field. Furthermore, if referencing a schema that contains an example, the examples value SHALL override the example provided by the schema.
     content?: Content // A map containing the representations for the parameter. The key is the media type and the value describes it. The map MUST only contain one entry.
 }
 
@@ -221,7 +221,7 @@ export interface ExampleObject {
 
 export interface EncodingObject {
     contentType?: string // The Content-Type for encoding a specific property. Default value depends on the property type: for object - application/json; for array – the default is defined based on the inner type; for all other cases the default is application/octet-stream. The value can be a specific media type (e.g. application/json), a wildcard media type (e.g. image/*), or a comma-separated list of the two types.
-    headers?: Record<string, HeaderObject | ReferenceObject> // A map allowing additional information to be provided as headers, for example Content-Disposition. Content-Type is described separately and SHALL be ignored in this section. This property SHALL be ignored if the request body media type is not a multipart.
+    headers?: Headers // A map allowing additional information to be provided as headers, for example Content-Disposition. Content-Type is described separately and SHALL be ignored in this section. This property SHALL be ignored if the request body media type is not a multipart.
     style?: string // Describes how a specific property value will be serialized depending on its type. See Parameter Object for details on the style property. The behavior follows the same values as query parameters, including default values. This property SHALL be ignored if the request body media type is not application/x-www-form-urlencoded or multipart/form-data. If a value is explicitly defined, then the value of contentType (implicit or explicit) SHALL be ignored.
     explode?: boolean // When this is true, property values of type array or object generate separate parameters for each value of the array, or key-value-pair of the map. For other types of properties this property has no effect. When style is form, the default value is true. For all other styles, the default value is false. This property SHALL be ignored if the request body media type is not application/x-www-form-urlencoded or multipart/form-data. If a value is explicitly defined, then the value of contentType (implicit or explicit) SHALL be ignored.
     allowReserved?: boolean // Determines whether the parameter value SHOULD allow reserved characters, as defined by [RFC3986] :/?#[]@!$&'()*+,;= to be included without percent-encoding. The default value is false. This property SHALL be ignored if the request body media type is not application/x-www-form-urlencoded or multipart/form-data. If a value is explicitly defined, then the value of contentType (implicit or explicit) SHALL be ignored.
@@ -235,9 +235,9 @@ export interface ResponsesObject extends Record<string, ResponseObject | Referen
 
 export interface ResponseObject {
     description: string // REQUIRED. A description of the response. CommonMark syntax MAY be used for rich text representation.
-    headers?: Record<string, HeaderObject | ReferenceObject> // Maps a header name to its definition. [RFC7230] states header names are case insensitive. If a response header is defined with the name "Content-Type", it SHALL be ignored.
+    headers?: Headers // Maps a header name to its definition. [RFC7230] states header names are case insensitive. If a response header is defined with the name "Content-Type", it SHALL be ignored.
     content?: Content // A map containing descriptions of potential response payloads. The key is a media type or media type range and the value describes it. For responses that match multiple keys, only the most specific key is applicable. e.g. text/plain overrides text/*
-    links?: Record<string, LinkObject | ReferenceObject> // A map of operations links that can be followed from the response. The key of the map is a short name for the link, following the naming constraints of the names for Component Objects.
+    links?: Links // A map of operations links that can be followed from the response. The key of the map is a short name for the link, following the naming constraints of the names for Component Objects.
 }
 
 export interface LinkObject {
@@ -259,9 +259,9 @@ export interface ComponentsObject {
     parameters?: Record<string, ParameterObject | ReferenceObject> // An object to hold reusable Parameter Objects.
     examples?: Examples // An object to hold reusable Example Objects.
     requestBodies?: Record<string, RequestBodyObject | ReferenceObject> // An object to hold reusable Request Body Objects.
-    headers?: Record<string, HeaderObject | ReferenceObject> // An object to hold reusable Header Objects.
+    headers?: Headers // An object to hold reusable Header Objects.
     securitySchemes?: Record<string, SecuritySchemeObject | ReferenceObject> // An object to hold reusable Security Scheme Objects.
-    links?: Record<string, LinkObject | ReferenceObject> // An object to hold reusable Link Objects.
+    links?: Links // An object to hold reusable Link Objects.
     callbacks?: Record<string, CallbackObject | ReferenceObject> // An object to hold reusable Callback Objects.
     pathItems?: Record<string, PathItemObject | ReferenceObject> // An object to hold reusable Path Item Object.
 }
@@ -302,3 +302,5 @@ export type Content = Record<string, MediaTypeObject>
 export type ParameterLocation = 'query' | 'header' | 'path' | 'cookie'
 export type ParameterStyle = 'matrix' | 'label' | 'form' | 'simple' | 'spaceDelimited' | 'pipeDelimited' | 'deepObject'
 export interface Examples extends Record<string, ExampleObject | ReferenceObject> {}
+export interface Headers extends Record<string, HeaderObject | ReferenceObject> {}
+export interface Links extends Record<string, LinkObject | ReferenceObject>{}
