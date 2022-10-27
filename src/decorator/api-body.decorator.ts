@@ -1,10 +1,10 @@
 import _ from 'lodash'
 import { guard, set } from '../util'
-import { MethodDecoratorParams, Type } from '../interface'
+import { MethodDecoratorParams, Type, Some } from '../interface'
 import { storage } from '../storage'
 
 export interface ApiBodyOption {
-    type: Type
+    type: Some<Type>
     description?: string
     required?: boolean
 }

@@ -1,46 +1,5 @@
 import _ from 'lodash'
-import { Enum, Type, primitiveClasses, PrimitiveClass } from './interface'
-
-export const wrapArray = (type: Type, isArray: boolean, array?: any[]) => {
-    const items = array ? { type, enum: array } : { type }
-    return isArray ? { type: 'array', items } : items
-}
-
-export function enumToArray(enums: Enum): { itemType: Number | String; items: number[] | string[] } {
-    const items = _.uniq(_.isArray(enums) ? _.reject(enums, _.isNil) : _.keys(enums).filter(n => _.isNaN(parseInt(n)))) as any
-    const itemType = { number: Number, string: String }[typeof items.at(0)] || String
-    return { itemType, items }
-}
-
-export function getSchemaPath(component: string | Function): string {
-    const componentName = _.isString(component) ? component : component && component.name
-    return `#/components/schemas/${componentName}`
-}
-
-export const isContain = (first: object, second: object) => {
-    for (const key of Object.keys(second)) {
-        if (first[key] !== second[key]) {
-            return false
-        }
-    }
-    return true
-}
-
-export const isValidKey = (name?: string) => _.isString(name) && name.length > 0
-
-export const isPrimitive = (type?: Type): type is PrimitiveClass => _.isFunction(type) && primitiveClasses.some(n => n === type)
-
-export const negate = (value: boolean) => !value
-
-export const guard = (condition: boolean, message: string) => {
-    if (!condition) {
-        throw new Error(message)
-    }
-}
-
-export const warning = (content: string) => {
-    console.log(`warning: ${content}`)
-}
+import { Enum, Type, Some } from './interface'
 
 export const set = (obj: any, path: string, item: any) => {
     const exist = _.get(obj, path)
@@ -51,12 +10,40 @@ export const set = (obj: any, path: string, item: any) => {
     }
 }
 
-export const remove = (obj: any, key) => {
+export const remove = <T extends Object, K extends keyof T>(obj: T | undefined, key: K): T[K] | undefined => {
+    if (!obj) {
+        return
+    }
     const result = obj[key]
     delete obj[key]
     return result
 }
 
+export const extractType = <T>(receivedType: Some<T>) => _.flatten([receivedType]).at(0)
+
+export function extractEnum(enums: Enum): { itemType: 'number' | 'string'; items: number[] | string[] } {
+    const items = _.uniq(
+        _.isArray(enums) ? _.reject(enums, _.isNil) : _.keys(enums).filter(n => _.isNaN(parseInt(n)))
+    ) as number[] | string[]
+    const itemType = typeof items.at(0) as 'number' | 'string'
+    return { itemType, items }
+}
+
+export function getSchemaPath(component: string | Function): string {
+    const componentName = _.isString(component) ? component : component && component.name
+    return `#/components/schemas/${componentName}`
+}
+
 export const wrapBrace = (url: string) => {
     return url.indexOf('/:') === 0 ? `/{${url.slice(2)}}` : url
+}
+
+export const guard = (condition: boolean, message: string) => {
+    if (!condition) {
+        throw new Error(message)
+    }
+}
+
+export const warning = (content: string) => {
+    console.log(`warning: ${content}`)
 }

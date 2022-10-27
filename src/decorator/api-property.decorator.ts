@@ -1,13 +1,15 @@
 import _ from 'lodash'
 import { guard, set } from '../util'
 import { storage } from '../storage'
-import { Enum, Type, PropertyDecoratorParams } from '../interface'
+import { Some, Enum, Type, PropertyDecoratorParams } from '../interface'
+import { Examples } from '../interface/open-api'
 
 export interface ApiPropertyOption {
-    type?: Type
+    type?: Some<Type>
     enum?: Enum
     name?: string
     required?: boolean
+    examples?: Examples
     const?: any
     // (From: json-schema-validation) Validation Keywords for Numeric Instances (number and integer)
     multipleOf?: number
@@ -38,7 +40,6 @@ export interface ApiPropertyOption {
     deprecated?: boolean
     // readOnly?: boolean
     // writeOnly?: boolean
-    examples?: any[]
 }
 
 const defaultOption: ApiPropertyOption = {
@@ -49,18 +50,26 @@ export function ApiProperty(receivedOption: ApiPropertyOption = {}): PropertyDec
     return (...[ target, property ]: PropertyDecoratorParams) => {
         guard(_.isString(property), `property name must be string`)
         const option = { ...defaultOption, ...receivedOption }
-        const type = Reflect.getMetadata('design:type', target, property as string)
         guard(
+                (_.isNil(option.type) && _.isNil(option.enum)) ||
                 (_.isNil(option.type) && !_.isNil(option.enum)) ||
                 (!_.isNil(option.type) && _.isNil(option.enum)),
             `@ApiProperty option incorrect which accepts:
-                1.type={Type} enum=undefined
-                2.type=undefined enum={Enum}`
+                1.type=undefined enum=undefined
+                2.type={Type} enum=undefined
+                3.type=undefined enum={Enum}`
         )
-        set(storage, `components.${target.constructor.name}.${property as string}`, { type, ...option })
+        if (_.isNil(option.type) && _.isNil(option.enum)) {
+            option.type = Reflect.getMetadata('design:type', target, property as string)
+        }
+        set(storage, `components.${target.constructor.name}.${property as string}`, option)
     }
 }
 
 export function ApiPropertyOptional(option: ApiPropertyOption = {}) {
     return ApiProperty({ ...option, required: false })
+}
+
+export function ApiHideProperty(): PropertyDecorator {
+    return (target: Record<string, any>, propertyKey: PropertyKey) => {};
 }

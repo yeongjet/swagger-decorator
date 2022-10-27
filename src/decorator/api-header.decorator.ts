@@ -1,13 +1,12 @@
 import _ from 'lodash'
 import { guard, set } from '../util'
 import { storage } from '../storage'
-import { ClassDecoratorParams, MethodDecoratorParams } from '../interface'
 import { Examples, ParameterStyle } from '../interface/open-api'
-import { ParameterLocation, Enum, Primitive } from '../interface'
+import { DecoratorParameterLocation, Enum, Some, Primitive, ClassDecoratorParams, MethodDecoratorParams  } from '../interface'
 
 export interface ApiHeaderOption {
     name: string
-    type?: Primitive
+    type?: Some<Primitive>
     enum?: Enum
     description?: string
     required?: boolean
@@ -38,7 +37,7 @@ export function ApiHeader(receivedOption: ApiHeaderOption) {
         const path = property
             ? `controllers.${(target as Object).constructor.name}.handlers.${property as string}.parameters`
             : `controllers.${(target as Function).name}.parameters`
-        set(storage, path, [{ in: ParameterLocation.HEADERS, ...option }])
+        set(storage, path, [{ in: DecoratorParameterLocation.HEADERS, ...option }])
     }
 }
 

@@ -1,13 +1,14 @@
 import _ from 'lodash'
 import { storage } from '../storage'
-import { guard, set, isPrimitive } from '../util'
+import { guard, set } from '../util'
 import { Examples, ParameterStyle } from '../interface/open-api'
-import { Type, Enum, ParameterLocation, MethodDecoratorParams } from '../interface'
+import { Type, Some, Enum, DecoratorParameterLocation, MethodDecoratorParams } from '../interface'
+import { isPrimitive } from '../doc-builder'
 
 export interface ApiParamOption {
-    type?: Type
-    enum?: Enum
     name?: string
+    type?: Some<Type>
+    enum?: Enum
     format?: string
     description?: string
     required?: boolean
@@ -29,16 +30,15 @@ export function ApiParam(receivedOption: ApiParamOption): MethodDecorator {
         guard(_.isString(property), `property key must be string`)
         const option = { ...defaultOption, ...receivedOption }
         guard(
-            (_.isString(option.name) && isPrimitive(option.type) && _.isNil(option.enum)) ||
-                (_.isString(option.name) && _.isNil(option.type) && !_.isNil(option.enum)) ||
-                (_.isNil(option.name) && !isPrimitive(option.type) && _.isNil(option.enum)),
+            (_.isString(option.name) && isPrimitive(option)) ||
+                (_.isNil(option.name) && !isPrimitive(option)),
             `@ApiParam option incorrect which accepts:
                 1.name={string} type={Primitive} enum=undefined
                 2.name={string} type=undefined enum={Enum}
                 3.name=undefined type={Class} enum=undefined`
         )
         set(storage, `controllers.${(target as Object).constructor.name}.handlers.${property as string}.parameters`, [
-            { in: ParameterLocation.PATH, ...option }
+            { in: DecoratorParameterLocation.PATH, ...option }
         ])
     }
 }

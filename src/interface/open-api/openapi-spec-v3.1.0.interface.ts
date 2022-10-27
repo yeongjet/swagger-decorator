@@ -152,14 +152,14 @@ export interface SchemaObject {
     writeOnly?: boolean
     examples?: any[]
     // (From: json-schema-core) Keywords for Applying Subschemas in Place
-    allOf: (SchemaObject | ReferenceObject)[]
-    anyOf: (SchemaObject | ReferenceObject)[]
-    oneOf: (SchemaObject | ReferenceObject)[]
-    not: SchemaObject | ReferenceObject
-    if: SchemaObject | ReferenceObject
-    then: SchemaObject | ReferenceObject
-    else: SchemaObject | ReferenceObject
-    dependentSchemas: Record<string, SchemaObject | ReferenceObject>
+    allOf?: (SchemaObject | ReferenceObject)[]
+    anyOf?: (SchemaObject | ReferenceObject)[]
+    oneOf?: (SchemaObject | ReferenceObject)[]
+    not?: SchemaObject | ReferenceObject
+    if?: SchemaObject | ReferenceObject
+    then?: SchemaObject | ReferenceObject
+    else?: SchemaObject | ReferenceObject
+    dependentSchemas?: Record<string, SchemaObject | ReferenceObject>
     // (From: json-schema-core) Keywords for Applying Subschemas to Child Instances
     prefixItems?: (SchemaObject | ReferenceObject)[]
     items?: SchemaObject | ReferenceObject
@@ -169,9 +169,9 @@ export interface SchemaObject {
     additionalProperties?: SchemaObject | ReferenceObject
     propertyNames?: SchemaObject | ReferenceObject
     // The OpenAPI Specification’s base vocabulary
-    discriminator: DiscriminatorObject // Adds support for polymorphism. The discriminator is an object name that is used to differentiate between other schemas which may satisfy the payload description. See Composition and Inheritance for more details.
-    xml: XMLObject // This MAY be used only on properties schemas. It has no effect on root schemas. Adds additional metadata to describe the XML representation of this property.
-    externalDocs: ExternalDocumentationObject // Additional external documentation for this schema.
+    discriminator?: DiscriminatorObject // Adds support for polymorphism. The discriminator is an object name that is used to differentiate between other schemas which may satisfy the payload description. See Composition and Inheritance for more details.
+    xml?: XMLObject // This MAY be used only on properties schemas. It has no effect on root schemas. Adds additional metadata to describe the XML representation of this property.
+    externalDocs?: ExternalDocumentationObject // Additional external documentation for this schema.
 }
 
 export interface DiscriminatorObject {

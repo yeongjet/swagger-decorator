@@ -1,4 +1,5 @@
+import 'reflect-metadata'
 export * from './decorator'
-export * from './builder'
+export * from './doc-builder'
 export * from './interface'
 export * as storage from './storage'

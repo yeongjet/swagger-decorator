@@ -9,11 +9,11 @@
             "post": {
                 "parameters": [
                     {
+                        "index": 2,
                         "name": "address",
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "required": true,
                             "type": "string"
                         }
                     },
@@ -22,7 +22,8 @@
                         "in": "header",
                         "required": true,
                         "schema": {
-                            "required": true,
+                            "name": "postcode",
+                            "in": "header",
                             "type": "string"
                         }
                     },
@@ -31,78 +32,73 @@
                         "in": "header",
                         "required": true,
                         "schema": {
-                            "required": true,
+                            "name": "street",
+                            "in": "header",
                             "type": "string"
                         }
                     },
                     {
+                        "in": "query",
+                        "required": true,
                         "name": "firstname",
-                        "in": "query",
-                        "required": true,
                         "schema": {
-                            "required": true,
                             "type": "string"
                         }
                     },
                     {
-                        "name": "age",
                         "in": "query",
                         "required": true,
+                        "name": "age",
                         "schema": {
-                            "required": true,
                             "type": "number"
                         }
                     },
                     {
                         "in": "query",
                         "required": true,
-                        "name": "ApiQuery_(type:basic)"
+                        "name": "ApiQuery_(type:basic)",
+                        "schema": {
+                            "in": "query",
+                            "name": "ApiQuery_(type:basic)",
+                            "type": "integer",
+                            "format": "int64"
+                        }
                     },
                     {
-                        "name": "firstname",
                         "in": "header",
                         "required": true,
+                        "name": "ApiHeader_(type:no)",
                         "schema": {
-                            "required": true,
+                            "in": "header",
+                            "name": "ApiHeader_(type:no)",
                             "type": "string"
                         }
                     },
                     {
-                        "name": "age",
-                        "in": "header",
+                        "in": "path",
                         "required": true,
-                        "schema": {
-                            "required": true,
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "in": "header",
-                        "required": true,
-                        "name": "ApiHeader_(type:no)"
-                    },
-                    {
                         "name": "name",
-                        "in": "path",
-                        "required": true,
                         "schema": {
-                            "required": true,
                             "type": "string"
                         }
                     },
                     {
-                        "name": "age",
                         "in": "path",
                         "required": true,
+                        "name": "age",
                         "schema": {
-                            "required": true,
                             "type": "number"
                         }
                     },
                     {
                         "in": "path",
                         "required": true,
-                        "name": "ApiParam_(type:basic)"
+                        "name": "ApiParam_(type:basic)",
+                        "schema": {
+                            "in": "path",
+                            "name": "ApiParam_(type:basic)",
+                            "type": "string"
+                        }
                     }
                 ],
                 "requestBody": {
@@ -131,14 +127,26 @@
     },
     "components": {
         "schema": {
-            "PersonBody": {
+            "PersonApiHeader": {
                 "properties": {
                     "firstname": {
-                        "required": true,
                         "type": "string"
                     },
                     "age": {
-                        "required": false,
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "firstname",
+                    "age"
+                ]
+            },
+            "PersonBody": {
+                "properties": {
+                    "firstname": {
+                        "type": "string"
+                    },
+                    "age": {
                         "type": "number"
                     }
                 },
