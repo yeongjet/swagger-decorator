@@ -5,7 +5,7 @@ import { OpenAPI, ParameterObject, RequestBodyObject, SchemaObject } from './int
 import { warning, wrapBrace, set, extractEnum, remove, extractType, guard } from './util'
 import { Type, DecoratorParameterLocation, BindingParameterLocation, Some, Enum, Primitive } from './interface'
 import { Class, SetRequired } from 'type-fest'
-import { ApiPropertyOption } from './decorator'
+import { ApiPropertyOption, ApiResponseOption } from './decorator'
 
 type BindingParameter = { name?: string; in: `${BindingParameterLocation}`; type: Type }
 type NotPrimitiveUnnamedBindingParameter = { in: `${DecoratorParameterLocation}`; type: Class<any> }
@@ -154,25 +154,24 @@ const generateRequestBodyObject = (
     return { ..._.pick(body, 'description', 'required'), content }
 }
 
-const generateResponsesObject = (storageResponse: any, produces: string[]) => {
-    return produces.reduce((pacc, pitem: any) => {
-        const response = { ...pacc, [pitem.status]: _.pick(pitem, 'description', 'headers', 'links') }
-        if (pitem.type) {
+const generateResponsesObject = (responses: ApiResponseOption[], produces: string[]) => {
+    return responses.reduce((pacc, response: any) => {
+        const result = { ...pacc, [response.status]: _.pick(response, 'description', 'headers', 'links') }
+        if (response.type) {
             const content = produces.reduce(
                 (acc, item) => ({
                     ...acc,
                     [item]: {
-                        ..._.pick(storageResponse, 'example', 'examples'),
                         schema: {
-                            $ref: `#/components/schemas/${pitem?.type.constructor.name}`
+                            $ref: `#/components/schemas/${response.type.constructor.name}`
                         }
                     }
                 }),
                 {}
             )
-            Object.assign(response, content)
+            Object.assign(result, content)
         }
-        return response
+        return result
     }, {})
 }
 
@@ -201,18 +200,17 @@ export const buildDocument = (option: BuildDocumentOption) => {
             version: version || ''
         }
     }
-    let a = storage
     for (const [controllerName, controllerStorage] of Object.entries(storage.controllers || {})) {
         const routePrefix = routePrefixGetter ? routePrefixGetter(controllerName) : ''
         for (const [handlerName, handlerStorage] of Object.entries(controllerStorage.handlers) as any) {
-            const consumes = handlerStorage.consumes || controllerStorage.consumes || ['application/json']
-            const produces = handlerStorage.produces || controllerStorage.produces || ['application/json']
             const routeBinding = routeBindingGetter(controllerName, handlerName)
             const parameters = generateParametersObject(
                 storage.components,
                 routeBinding.parameters || [],
                 handlerStorage.parameters || []
             )
+            const consumes = handlerStorage.consumes || controllerStorage.consumes || ['application/json']
+            const produces = handlerStorage.produces || controllerStorage.produces || ['application/json']
             const requestBody = generateRequestBodyObject(routeBinding.parameters || [], handlerStorage.body, consumes)
             const responses = generateResponsesObject(handlerStorage.responses, produces)
             const httpMethod = routeBinding.httpMethod.toLowerCase()

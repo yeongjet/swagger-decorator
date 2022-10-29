@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "ts-node test/main.ts"
+    "test": "ts-node test/main.ts",
+    "plugin": "ts-node test/plugin.ts"
   },
   "files": [
     "dist"

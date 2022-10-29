@@ -14,6 +14,17 @@
             "runtimeExecutable": "/home/yeongjet/.nvm/versions/node/v18.3.0/bin/npm",
             "runtimeArgs": ["run", "test"],
             "console": "integratedTerminal"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "plugin",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "/home/yeongjet/.nvm/versions/node/v18.3.0/bin/npm",
+            "runtimeArgs": ["run", "plugin"],
+            "console": "integratedTerminal"
         }
     ]
 }

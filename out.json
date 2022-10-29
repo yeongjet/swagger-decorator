@@ -112,7 +112,9 @@
                     }
                 },
                 "responses": {
-                    "undefined": {}
+                    "403": {
+                        "description": "Forbidden."
+                    }
                 },
                 "tags": [
                     "cats"

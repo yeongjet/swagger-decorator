@@ -1,5 +1,5 @@
 import { DecoratorParameterLocation } from './interface'
-import { ApiHeaderOption, ApiParamOption, ApiQueryOption, ApiPropertyOption } from './decorator'
+import { ApiResponseOption, ApiHeaderOption, ApiParamOption, ApiQueryOption, ApiPropertyOption } from './decorator'
 
 export interface Component extends Record<string, ApiPropertyOption> {}
 
@@ -11,6 +11,7 @@ export interface Handler {
     parameters?: Parameter[]
     consumes?: string[]
     produces?: string[]
+    responses?: ApiResponseOption[]
 }
 
 export interface Controller {

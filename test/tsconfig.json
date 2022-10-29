@@ -10,7 +10,8 @@
     "target": "es6",
     "sourceMap": false,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "outDir": "./dist",
   },
   "include": [
     "**/*"
