@@ -2,9 +2,9 @@ import _ from 'lodash'
 import { Enum, Type, Some } from './interface'
 
 export const set = (obj: any, path: string, item: any) => {
-    const exist = _.get(obj, path)
-    if (_.isArray(exist)) {
-        exist.push(...item)
+    const value = _.get(obj, path)
+    if (_.isArray(value)) {
+        value.push(...item)
     } else {
         _.set(obj, path, item)
     }

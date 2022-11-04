@@ -1,5 +1,7 @@
 import { IsInt, IsString } from 'class-validator';
 
+const a = 123
+
 export class CreateCatDto {
   // @ApiProperty({ example: 1, description: 'The age of the Cat' })
   @IsString()

@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import ts from 'typescript'
 import { ModelClassVisitor } from './visitors'
 
