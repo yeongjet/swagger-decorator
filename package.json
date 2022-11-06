@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "build": "del dist && tsc",
     "test": "ts-node test/main.ts",
     "plugin": "ts-node test/plugin.ts"
   },
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@types/lodash": "^4.14.186",
     "@types/node": "^18.11.3",
+    "del-cli": "^5.0.0",
     "eslint": "^8.25.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",

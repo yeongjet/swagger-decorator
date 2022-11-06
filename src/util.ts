@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { Enum, Type, Some } from './interface'
+import { Enum, Some } from './interface'
 
 export const set = (obj: any, path: string, item: any) => {
     const value = _.get(obj, path)

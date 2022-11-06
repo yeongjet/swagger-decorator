@@ -202,7 +202,7 @@ export const buildDocument = (option: BuildDocumentOption) => {
     }
     for (const [controllerName, controllerStorage] of Object.entries(storage.controllers || {})) {
         const routePrefix = routePrefixGetter ? routePrefixGetter(controllerName) : ''
-        for (const [handlerName, handlerStorage] of Object.entries(controllerStorage.handlers) as any) {
+        for (const [handlerName, handlerStorage] of Object.entries(controllerStorage.handlers || {}) as any) {
             const routeBinding = routeBindingGetter(controllerName, handlerName)
             const parameters = generateParametersObject(
                 storage.components,

@@ -15,7 +15,7 @@ export interface Handler {
 }
 
 export interface Controller {
-    handlers: Record<string, Handler>
+    handlers?: Record<string, Handler>
     consumes?: string[]
     produces?: string[]
 }
